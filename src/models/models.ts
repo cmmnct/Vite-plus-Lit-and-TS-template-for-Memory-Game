@@ -1,12 +1,11 @@
 export type Card = {
   name: string;
-  imageUrl: string;
+  set: string;
   flipped?: boolean;
 };
 
 export type CardSet = {
-  id: number;
   set: string;
-  card1: Card;
-  card2?: Card; // Optional property
+  card1?: string;
+  card2?: string;
 };

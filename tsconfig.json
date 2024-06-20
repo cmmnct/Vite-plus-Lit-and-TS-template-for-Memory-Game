@@ -9,6 +9,7 @@
     "moduleResolution": "node",
     "outDir": "./dist",
     "experimentalDecorators": true, // Voeg deze regel toe
+    "useDefineForClassFields": false, //Voeg deze regel toe
     "emitDecoratorMetadata": true // Voeg deze regel toe
   },
   "include": [
