@@ -2,8 +2,7 @@ import { LitElement, html, css } from "lit";
 import { property } from "lit/decorators.js";
 import "./memoryCard.js";
 import { GameLogic } from "../utils/gameLogic.js";
-import { Card, CardSet } from "../models/models.js";
-import { State } from "../gameTypes.js";
+import { Card, CardSet, State } from "../models/models.js";
 
 const createCard = (
   set: string,
@@ -228,7 +227,7 @@ export class MemoryGame extends LitElement {
     );
     this.cards = [];
 
-    selectedCardSets.forEach((cardSet) => {
+    selectedCardSets.forEach((cardSet: CardSet) => {
       if (cardSet.card1 && cardSet.card2) {
         this.cards.push(createCard(cardSet.set, cardSet.card1));
         this.cards.push(createCard(cardSet.set, cardSet.card2));
@@ -245,7 +244,6 @@ export class MemoryGame extends LitElement {
       secondCard: null,
       lockBoard: false,
     };
-    this.requestUpdate();
   }
 
   handleCardFlip(index: number, card: Card) {

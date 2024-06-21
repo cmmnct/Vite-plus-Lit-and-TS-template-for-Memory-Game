@@ -1,9 +1,9 @@
-import { LitElement, html, css } from "lit";
-import { property } from "lit/decorators.js";
+import { LitElement, html, css } from 'lit';
+import { property } from 'lit/decorators.js';
 
 export class MemoryCard extends LitElement {
-  @property({ type: String }) name: string = "";
-  @property({ type: String }) set: string = "";
+  @property({ type: String }) name: string = '';
+  @property({ type: String }) set: string = '';
   @property({ type: Boolean }) flipped: boolean = false;
 
   static styles = css`
@@ -23,16 +23,11 @@ export class MemoryCard extends LitElement {
 
   render() {
     return html`
-      <div
-        class="card"
-        style="background-color: ${this.flipped ? "white" : "#f0f0f0"}"
-      >
-        ${this.flipped
-          ? html`<img src="/assets/img/${this.name}.webp" alt="${this.name}" />`
-          : ""}
+      <div class="card" style="background-color: ${this.flipped ? 'white' : '#f0f0f0'}">
+        ${this.flipped ? html`<img src="/assets/img/${this.name}.webp">` : ''}
       </div>
     `;
   }
 }
 
-customElements.define("memory-card", MemoryCard);
+customElements.define('memory-card', MemoryCard);
