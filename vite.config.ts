@@ -1,6 +1,5 @@
 import { defineConfig } from "vite";
 import { resolve } from "path";
-import mimePlugin from './vite-plugin-mime';
 
 export default defineConfig({
   root: resolve(__dirname, "src"),
@@ -16,6 +15,5 @@ export default defineConfig({
   server: {
     open: true,
   },
-  plugins: [mimePlugin()],
   assetsInclude: ["**/*.webp", "**/*.jpg", "**/*.png"],
 });
