@@ -1,6 +1,7 @@
 import { LitElement, html, css } from "lit";
-import { property } from "lit/decorators.js";
+import { property, customElement } from "lit/decorators.js";
 
+@customElement("memory-card")
 export class MemoryCard extends LitElement {
   @property({ type: String }) name: string = "";
   @property({ type: String }) set: string = "";
@@ -34,5 +35,3 @@ export class MemoryCard extends LitElement {
     `;
   }
 }
-
-customElements.define("memory-card", MemoryCard);

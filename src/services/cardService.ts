@@ -3,6 +3,7 @@ import { GameLogic } from "../utils/gameLogic";
 
 export class CardService {
   private cards: Card[] = [];
+  private gridSize: number = 0;
   private state = {
     firstCard: null as Card | null,
     secondCard: null as Card | null,
@@ -13,17 +14,130 @@ export class CardService {
   private cardSets: CardSet[] = [
     {
       set: "duck",
+      card1: "",
+      card2: "",
     },
     {
-      set: "hammer_nails",
-      card1: "hammer",
-      card2: "nails",
+      set: "kitten",
+      card1: "",
+      card2: "",
     },
-    // Voeg meer cardSets toe...
+    {
+      set: "piglet",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "puppy",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "calf",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "veal",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "lamb",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "rooster",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "horse",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "mouse",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "dog",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "cat",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "goose",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "goat",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "sheep",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "pig",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "cow",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "chick",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "hen",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "donkey",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "peacock",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "pigeon",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "fox",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "hedgehog",
+      card1: "",
+      card2: "",
+    },
   ];
 
-  initializeCards(gridSize: number): Card[] {
-    const totalCardSets = gridSize / 2;
+  initializeCards(event: Event): Card[] {
+    this.gridSize = parseInt((event.target as HTMLSelectElement).value);
+    this.resetState();
+    const totalCardSets = this.gridSize / 2;
     const selectedCardSets = GameLogic.shuffle([...this.cardSets]).slice(
       0,
       totalCardSets
@@ -55,12 +169,12 @@ export class CardService {
     };
   }
 
-  getCards(): Card[] {
-    return this.cards;
-  }
-
   getState() {
     return this.state;
+  }
+
+  getGridSize(): number {
+    return this.gridSize;
   }
 
   resetState() {
@@ -111,12 +225,14 @@ export class CardService {
   }
 
   isInvalidClick(card: Card): boolean {
-    return (
-      this.state.lockBoard || card === this.state.firstCard || card.exposed
+    return !!(
+      this.state.lockBoard ||
+      card === this.state.firstCard ||
+      card.exposed
     );
   }
 
-  checkMatch() {
+  checkMatch(): boolean {
     if (this.state.firstCard && this.state.secondCard) {
       return GameLogic.checkForMatch(
         this.state.firstCard.set,
@@ -126,7 +242,42 @@ export class CardService {
     return false;
   }
 
-  areCardsLeft() {
+  areCardsLeft(): boolean {
     return GameLogic.areCardsLeft(this.cards);
+  }
+
+  handleCardClick(index: number, updateCallback: () => void) {
+    const card = this.cards[index];
+    if (this.isInvalidClick(card)) return;
+
+    this.exposeCard(index);
+    updateCallback();
+
+    if (!this.state.firstCard) {
+      this.setFirstCard(card);
+      return;
+    }
+
+    this.setSecondCard(card);
+    this.incrementAttempts();
+    updateCallback();
+
+    if (this.checkMatch()) {
+      if (this.areCardsLeft()) {
+        this.resetSelection();
+        updateCallback();
+      } else {
+        alert("Gefeliciteerd! Je hebt alle kaarten gevonden.");
+      }
+    } else {
+      setTimeout(() => {
+        const firstCardIndex = this.cards.indexOf(this.state.firstCard!);
+        const secondCardIndex = this.cards.indexOf(this.state.secondCard!);
+
+        this.updateCardState(firstCardIndex, secondCardIndex, false);
+        this.resetSelection();
+        updateCallback();
+      }, 1000);
+    }
   }
 }
