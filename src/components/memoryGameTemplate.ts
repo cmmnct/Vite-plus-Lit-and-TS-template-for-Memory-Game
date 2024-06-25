@@ -1,6 +1,6 @@
-import { html } from "lit";
-import { MemoryGame } from "./memoryGame";
-import { repeat } from "lit/directives/repeat.js";
+import { html } from 'lit';
+import { MemoryGame } from './memoryGame';
+import { repeat } from 'lit/directives/repeat.js';
 
 export const memoryGameTemplate = (game: MemoryGame) => {
   const state = game.cardService.getState();
@@ -19,10 +19,7 @@ export const memoryGameTemplate = (game: MemoryGame) => {
       <p>Aantal pogingen: ${state.attempts}</p>
     </div>
     <div class="board board${gridSize}">
-      ${repeat(
-        game.cards,
-        (card) => card.name, // unieke sleutel voor elke kaart
-        (card, index) => html`
+      ${repeat(game.cards, (card) => card.name, (card, index) => html`
           <memory-card
             .name="${card.name}"
             .set="${card.set}"
