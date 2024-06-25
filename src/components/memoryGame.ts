@@ -239,12 +239,7 @@ export class MemoryGame extends LitElement {
     });
 
     this.cards = GameLogic.shuffle(this.cards);
-    this.attempts = 0;
-    this.state = {
-      firstCard: null,
-      secondCard: null,
-      lockBoard: false,
-    };
+    this.resetGameState(true);
   }
 
   handleCardFlip(index: number, card: Card) {
@@ -286,13 +281,16 @@ export class MemoryGame extends LitElement {
       if (this.state.firstCard) this.state.firstCard.exposed = false;
       if (this.state.secondCard) this.state.secondCard.exposed = false;
     }
+    this.resetGameState()
+    this.requestUpdate();
+  }
 
+  resetGameState(init=false) {
+    if (init) this.attempts = 0;
     this.state = {
       firstCard: null,
       secondCard: null,
       lockBoard: false,
     };
-
-    this.requestUpdate();
   }
 }

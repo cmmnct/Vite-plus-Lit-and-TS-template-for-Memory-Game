@@ -14,6 +14,6 @@ export class GameLogic {
   }
 
   static areCardsLeft(cards: Card[]): boolean {
-    return cards.some((card) => !card.flipped);
+    return cards.some((card) => !card.exposed);
   }
 }
