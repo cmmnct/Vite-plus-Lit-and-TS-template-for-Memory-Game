@@ -210,7 +210,7 @@ export class MemoryGame extends LitElement {
               .name="${card.name}"
               .set="${card.set}"
               .exposed="${card.exposed}"
-              @click="${() => this.handleCardFlip(index, card)}"
+              @click="${() => this.handleCardClick(index, card)}"
             >
             </memory-card>
           `
@@ -242,7 +242,7 @@ export class MemoryGame extends LitElement {
     this.resetGameState(true);
   }
 
-  handleCardFlip(index: number, card: Card) {
+  handleCardClick(index: number, card: Card) {
     if (this.state.lockBoard || card === this.state.firstCard || card.exposed) {
       return;
     }
