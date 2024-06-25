@@ -1,7 +1,7 @@
 export type Card = {
   name: string;
   set: string;
-  flipped?: boolean;
+  exposed?: boolean;
 };
 
 export type CardSet = {

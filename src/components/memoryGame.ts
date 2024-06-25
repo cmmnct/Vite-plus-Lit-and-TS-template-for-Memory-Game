@@ -7,11 +7,11 @@ import { Card, CardSet, State } from "../models/models.js";
 const createCard = (
   set: string,
   name?: string,
-  flipped: boolean = false
+  exposed: boolean = false
 ): Card => ({
   name: name || set,
   set,
-  flipped,
+  exposed,
 });
 
 export class MemoryGame extends LitElement {
@@ -208,7 +208,7 @@ export class MemoryGame extends LitElement {
             <memory-card
               .name="${card.name}"
               .set="${card.set}"
-              .flipped="${card.flipped}"
+              .exposed="${card.exposed}"
               @click="${() => this.handleCardFlip(index, card)}"
             >
             </memory-card>
@@ -247,11 +247,11 @@ export class MemoryGame extends LitElement {
   }
 
   handleCardFlip(index: number, card: Card) {
-    if (this.state.lockBoard || card === this.state.firstCard || card.flipped) {
+    if (this.state.lockBoard || card === this.state.firstCard || card.exposed) {
       return;
     }
 
-    card.flipped = true;
+    card.exposed = true;
 
     if (!this.state.firstCard) {
       this.state = { ...this.state, firstCard: card };
@@ -282,8 +282,8 @@ export class MemoryGame extends LitElement {
 
   updateCardsState(isMatch: boolean) {
     if (!isMatch) {
-      if (this.state.firstCard) this.state.firstCard.flipped = false;
-      if (this.state.secondCard) this.state.secondCard.flipped = false;
+      if (this.state.firstCard) this.state.firstCard.exposed = false;
+      if (this.state.secondCard) this.state.secondCard.exposed = false;
     }
 
     this.state = {
