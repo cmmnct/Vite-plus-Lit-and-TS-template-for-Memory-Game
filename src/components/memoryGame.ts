@@ -1,5 +1,5 @@
 import { LitElement, html, css } from "lit";
-import { property } from "lit/decorators.js";
+import { property, customElement } from "lit/decorators.js";
 import "./memoryCard.js";
 import { GameLogic } from "../utils/gameLogic.js";
 import { Card, CardSet, State } from "../models/models.js";
@@ -14,6 +14,7 @@ const createCard = (
   exposed,
 });
 
+@customElement("memory-game")
 export class MemoryGame extends LitElement {
   @property({ type: Array }) cards: Card[] = [];
   @property({ type: Object }) state: State = {
@@ -295,5 +296,3 @@ export class MemoryGame extends LitElement {
     this.requestUpdate();
   }
 }
-
-customElements.define("memory-game", MemoryGame);
