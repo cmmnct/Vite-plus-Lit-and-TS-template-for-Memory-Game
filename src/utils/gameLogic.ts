@@ -9,9 +9,6 @@ export class GameLogic {
     return array;
   }
 
-  static checkForMatch(set1: string, set2: string): boolean {
-    return set1 === set2;
-  }
 
   static areCardsLeft(cards: Card[]): boolean {
     return cards.some((card) => !card.exposed);

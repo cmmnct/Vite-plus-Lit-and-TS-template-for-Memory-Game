@@ -14,4 +14,6 @@ export type State = {
   firstCard: Card | null;
   secondCard: Card | null;
   lockBoard: boolean;
+  attempts: number;
+  gridSize?: number;
 };

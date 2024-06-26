@@ -1,14 +1,14 @@
-import { Card, CardSet } from "../models/models";
+import { Card, CardSet, State } from "../models/models";
 import { GameLogic } from "../utils/gameLogic";
 
 export class CardService {
   private cards: Card[] = [];
-  private gridSize = 0;
-  private state = {
-    firstCard: null as Card | null,
-    secondCard: null as Card | null,
+  private state: State = {
+    firstCard: { name: "", set: "" },
+    secondCard: { name: "", set: "" },
     lockBoard: false,
     attempts: 0,
+    gridSize: 0,
   };
 
   private cardSets: CardSet[] = [
@@ -41,9 +41,9 @@ export class CardService {
   // Game functions
 
   initializeCards(event: Event): Card[] {
-    this.gridSize = parseInt((event.target as HTMLSelectElement).value);
+    this.state.gridSize = parseInt((event.target as HTMLSelectElement).value);
     this.resetGameState(true);
-    const totalCardSets = this.gridSize / 2;
+    const totalCardSets = this.state.gridSize / 2;
     const selectedCardSets = GameLogic.shuffle([...this.cardSets]).slice(
       0,
       totalCardSets
@@ -80,8 +80,8 @@ export class CardService {
     this.state.lockBoard = true;
     updateCallback();
 
-    if (this.checkMatch()) {
-      if (GameLogic.areCardsLeft(this.cards)) {
+    if (this.state.firstCard.set === this.state.secondCard.set) {
+      if (this.cardsLeft(this.cards)) {
         this.resetGameState();
         updateCallback();
       } else {
@@ -102,10 +102,14 @@ export class CardService {
   }
 
   getGridSize() {
-    return this.gridSize;
+    return this.state.gridSize;
   }
 
   // Internal functions
+
+  private cardsLeft(cards: Card[]): boolean {
+    return cards.some((card) => !card.exposed);
+  }
 
   private createCard(
     set: string,
@@ -134,15 +138,5 @@ export class CardService {
       clickedCard === this.state.firstCard ||
       clickedCard.exposed
     );
-  }
-
-  private checkMatch(): boolean {
-    if (this.state.firstCard && this.state.secondCard) {
-      return GameLogic.checkForMatch(
-        this.state.firstCard.set,
-        this.state.secondCard.set
-      );
-    }
-    return false;
   }
 }
