@@ -1,6 +1,8 @@
 import { Card, CardSet, State } from "../models/models";
 import { GameLogic } from "../utils/gameLogic";
+import { injectable } from "inversify";
 
+@injectable()
 export class CardService {
   private cards: Card[] = [];
   private state: State = {

@@ -11,7 +11,9 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
+    "inversify": "^6.0.2",
     "lit": "^3.1.4",
+    "reflect-metadata": "^0.2.2",
     "vite": "^5.3.1"
   }
 }

@@ -4,12 +4,15 @@ import "./memoryCard.js";
 import { Card, State } from "../models/models";
 import { CardService } from "../services/cardService";
 import { repeat } from "lit/directives/repeat.js";
+import { container } from "../../inversify.config";
+import { TYPES } from "../../inversify.config";
+
 
 @customElement("memory-game")
 export class MemoryGame extends LitElement {
   @property({ type: Array }) cards: Card[] = [];
 
-  cardService: CardService;
+  private cardService: CardService;
   state: State;
 
   static styles = css`
@@ -52,7 +55,7 @@ export class MemoryGame extends LitElement {
   constructor() {
     super();
     this.cards = [];
-    this.cardService = new CardService();
+    this.cardService = container.get<CardService>(TYPES.CardService);
     this.state = this.cardService.getState();
   }
 
