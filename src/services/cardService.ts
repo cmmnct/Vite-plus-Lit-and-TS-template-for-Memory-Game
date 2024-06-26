@@ -12,34 +12,129 @@ export class CardService {
   };
 
   private cardSets: CardSet[] = [
-    { set: "duck", card1: "", card2: "" },
-    { set: "kitten", card1: "", card2: "" },
-    { set: "piglet", card1: "", card2: "" },
-    { set: "puppy", card1: "", card2: "" },
-    { set: "calf", card1: "", card2: "" },
-    { set: "veal", card1: "", card2: "" },
-    { set: "lamb", card1: "", card2: "" },
-    { set: "rooster", card1: "", card2: "" },
-    { set: "horse", card1: "", card2: "" },
-    { set: "mouse", card1: "", card2: "" },
-    { set: "dog", card1: "", card2: "" },
-    { set: "cat", card1: "", card2: "" },
-    { set: "goose", card1: "", card2: "" },
-    { set: "goat", card1: "", card2: "" },
-    { set: "sheep", card1: "", card2: "" },
-    { set: "pig", card1: "", card2: "" },
-    { set: "cow", card1: "", card2: "" },
-    { set: "chick", card1: "", card2: "" },
-    { set: "hen", card1: "", card2: "" },
-    { set: "donkey", card1: "", card2: "" },
-    { set: "peacock", card1: "", card2: "" },
-    { set: "pigeon", card1: "", card2: "" },
-    { set: "fox", card1: "", card2: "" },
-    { set: "hedgehog", card1: "", card2: "" },
+    {
+      set: "duck",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "kitten",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "piglet",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "puppy",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "calf",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "veal",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "lamb",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "rooster",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "horse",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "mouse",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "dog",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "cat",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "goose",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "goat",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "sheep",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "pig",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "cow",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "chick",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "hen",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "donkey",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "peacock",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "pigeon",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "fox",
+      card1: "",
+      card2: "",
+    },
+    {
+      set: "hedgehog",
+      card1: "",
+      card2: "",
+    },
   ];
 
-  // Game functions
-
+  // Deze methode initialiseert de kaarten en stelt het spel in staat om te beginnen
   initializeCards(event: Event): Card[] {
     this.state.gridSize = parseInt((event.target as HTMLSelectElement).value);
     this.resetGameState(true);
@@ -63,6 +158,7 @@ export class CardService {
     return GameLogic.shuffle(this.cards);
   }
 
+  // Deze methode handelt de klikactie op een kaart af en beheert de spelstatus
   handleCardClick(index: number, updateCallback: () => void) {
     const clickedCard = this.cards[index];
     if (this.isInvalidClick(clickedCard)) return;
@@ -97,20 +193,22 @@ export class CardService {
     }
   }
 
+  // Deze methode retourneert de huidige status van het spel
   getState() {
     return this.state;
   }
 
+  // Deze methode retourneert de huidige gridgrootte
   getGridSize() {
     return this.state.gridSize;
   }
 
-  // Internal functions
-
+  // Interne methode om te controleren of er nog ongeëxposeerde kaarten zijn
   private cardsLeft(cards: Card[]): boolean {
     return cards.some((card) => !card.exposed);
   }
 
+  // Interne methode om een kaartobject aan te maken
   private createCard(
     set: string,
     name?: string,
@@ -123,6 +221,7 @@ export class CardService {
     };
   }
 
+  // Interne methode om de spelstatus te resetten
   private resetGameState(init: boolean = false) {
     this.state.firstCard = null;
     this.state.secondCard = null;
@@ -132,6 +231,7 @@ export class CardService {
     }
   }
 
+  // Interne methode om te controleren of een klik ongeldig is
   private isInvalidClick(clickedCard: Card): boolean {
     return !!(
       this.state.lockBoard ||
