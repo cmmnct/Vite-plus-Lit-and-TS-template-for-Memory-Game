@@ -1,72 +1,52 @@
 import { Card, CardSet, State } from "../models/models";
 import { GameLogic } from "../utils/gameLogic";
-import { injectable } from "inversify";
 
-@injectable()
 export class CardService {
-  private cards: Card[] = [];
-  private state: State = {
-    firstCard: { name: "", set: "" },
-    secondCard: { name: "", set: "" },
-    lockBoard: false,
-    attempts: 0,
-    gridSize: 0,
-  };
+  private state: State;
+
+  constructor() {
+    this.state = this.loadStateFromLocalStorage() || {
+      firstCard: null,
+      secondCard: null,
+      lockBoard: false,
+      attempts: 0,
+      gridSize: 0,
+      cards: [],
+    };
+  }
 
   private cardSets: CardSet[] = [
     { set: "duck", card1: "", card2: "" },
     { set: "kitten", card1: "", card2: "" },
-    { set: "piglet", card1: "", card2: "" },
-    { set: "puppy", card1: "", card2: "" },
-    { set: "calf", card1: "", card2: "" },
-    { set: "veal", card1: "", card2: "" },
-    { set: "lamb", card1: "", card2: "" },
-    { set: "rooster", card1: "", card2: "" },
-    { set: "horse", card1: "", card2: "" },
-    { set: "mouse", card1: "", card2: "" },
-    { set: "dog", card1: "", card2: "" },
-    { set: "cat", card1: "", card2: "" },
-    { set: "goose", card1: "", card2: "" },
-    { set: "goat", card1: "", card2: "" },
-    { set: "sheep", card1: "", card2: "" },
-    { set: "pig", card1: "", card2: "" },
-    { set: "cow", card1: "", card2: "" },
-    { set: "chick", card1: "", card2: "" },
-    { set: "hen", card1: "", card2: "" },
-    { set: "donkey", card1: "", card2: "" },
-    { set: "peacock", card1: "", card2: "" },
-    { set: "pigeon", card1: "", card2: "" },
-    { set: "fox", card1: "", card2: "" },
-    { set: "hedgehog", card1: "", card2: "" },
+    // Voeg hier de overige cardSets toe zoals eerder gedefinieerd
   ];
 
-  // Game functions
-
-  initializeCards(event: Event): Card[] {
-    this.state.gridSize = parseInt((event.target as HTMLSelectElement).value);
+  async initializeCards(event: Event): Promise<Card[]> {
+    const target = event.target as HTMLSelectElement;
+    this.state.gridSize = parseInt(target.value);
     this.resetGameState(true);
-    const totalCardSets = this.state.gridSize / 2;
-    const selectedCardSets = GameLogic.shuffle([...this.cardSets]).slice(
-      0,
-      totalCardSets
-    );
 
-    this.cards = [];
-    selectedCardSets.forEach((cardSet: CardSet) => {
-      if (cardSet.card1 && cardSet.card2) {
-        this.cards.push(this.createCard(cardSet.set, cardSet.card1));
-        this.cards.push(this.createCard(cardSet.set, cardSet.card2));
-      } else {
-        this.cards.push(this.createCard(cardSet.set));
-        this.cards.push(this.createCard(cardSet.set));
+    try {
+      const response = await fetch(
+        "https://my-json-server.typicode.com/cmmnct/cards/cards"
+      );
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
       }
-    });
+      const data = await response.json();
+      const cards = data; // Aangepast om data rechtstreeks toe te wijzen
 
-    return GameLogic.shuffle(this.cards);
+      this.state.cards = this.createCardsFromSets(cards, this.state.gridSize);
+      this.saveStateToLocalStorage();
+      return GameLogic.shuffle(this.state.cards);
+    } catch (error) {
+      console.error("Failed to fetch data:", error);
+      return [];
+    }
   }
 
   handleCardClick(index: number, updateCallback: () => void) {
-    const clickedCard = this.cards[index];
+    const clickedCard = this.state.cards[index];
     if (this.isInvalidClick(clickedCard)) return;
 
     clickedCard.exposed = true;
@@ -74,6 +54,7 @@ export class CardService {
 
     if (!this.state.firstCard) {
       this.state.firstCard = clickedCard;
+      this.saveStateToLocalStorage();
       return;
     }
 
@@ -83,7 +64,7 @@ export class CardService {
     updateCallback();
 
     if (this.state.firstCard.set === this.state.secondCard.set) {
-      if (this.cardsLeft(this.cards)) {
+      if (this.cardsLeft(this.state.cards)) {
         this.resetGameState();
         updateCallback();
       } else {
@@ -97,20 +78,37 @@ export class CardService {
         updateCallback();
       }, 1000);
     }
+
+    this.saveStateToLocalStorage();
   }
 
-  getState() {
+  getState(): State {
     return this.state;
   }
 
-  getGridSize() {
-    return this.state.gridSize;
-  }
-
-  // Internal functions
-
   private cardsLeft(cards: Card[]): boolean {
     return cards.some((card) => !card.exposed);
+  }
+
+  private createCardsFromSets(cardSets: CardSet[], gridSize: number): Card[] {
+    const totalCardSets = gridSize / 2;
+    const selectedCardSets = GameLogic.shuffle([...cardSets]).slice(
+      0,
+      totalCardSets
+    );
+
+    const cards: Card[] = [];
+    selectedCardSets.forEach((cardSet: CardSet) => {
+      if (cardSet.card1 && cardSet.card2) {
+        cards.push(this.createCard(cardSet.set, cardSet.card1));
+        cards.push(this.createCard(cardSet.set, cardSet.card2));
+      } else {
+        cards.push(this.createCard(cardSet.set));
+        cards.push(this.createCard(cardSet.set));
+      }
+    });
+
+    return cards;
   }
 
   private createCard(
@@ -131,7 +129,9 @@ export class CardService {
     this.state.lockBoard = false;
     if (init) {
       this.state.attempts = 0;
+      this.state.cards = [];
     }
+    this.saveStateToLocalStorage();
   }
 
   private isInvalidClick(clickedCard: Card): boolean {
@@ -140,5 +140,14 @@ export class CardService {
       clickedCard === this.state.firstCard ||
       clickedCard.exposed
     );
+  }
+
+  private saveStateToLocalStorage() {
+    localStorage.setItem("memoryGameState", JSON.stringify(this.state));
+  }
+
+  private loadStateFromLocalStorage(): State | null {
+    const state = localStorage.getItem("memoryGameState");
+    return state ? JSON.parse(state) : null;
   }
 }
