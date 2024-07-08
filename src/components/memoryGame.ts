@@ -4,10 +4,14 @@ import "./memoryCard.js";
 import { Card, State } from "../models/models";
 import { CardService } from "../services/cardService";
 import { repeat } from "lit/directives/repeat.js";
+import { auth } from "../../firebaseConfig";
+import { onAuthStateChanged } from "firebase/auth";
+import "./loginComponent.js";
 
 @customElement("memory-game")
 export class MemoryGame extends LitElement {
   @property({ type: Array }) cards: Card[] = [];
+  @property({ type: Boolean }) loggedIn: boolean = false;
 
   cardService: CardService;
   state: State;
@@ -47,53 +51,90 @@ export class MemoryGame extends LitElement {
       padding: 10px;
       font-size: 16px;
     }
+    .login-indicator {
+      text-align: right;
+      padding: 10px;
+      font-size: 14px;
+    }
   `;
 
   constructor() {
     super();
     this.cardService = new CardService();
     this.state = this.cardService.getState();
-    this.cards = this.state.cards; // Haal de kaarten vanuit de state
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        this.loggedIn = true;
+        this.loadState();
+      } else {
+        this.loggedIn = false;
+      }
+      this.requestUpdate();
+    });
+  }
+
+  async loadState() {
+    await this.cardService.loadState();
+    this.state = this.cardService.getState();
+    this.cards = this.state.cards;
+    this.requestUpdate();
   }
 
   render() {
     return html`
-      <div class="select-grid">
-        <select @change="${this.handleGridSizeChange}">
-          <option selected disabled>Kies je speelveld</option>
-          <option value="16">4 x 4</option>
-          <option value="24">5 x 5</option>
-          <option value="36">6 x 6</option>
-        </select>
-      </div>
-      <div class="scoreboard">
-        <p>Aantal pogingen: ${this.state.attempts}</p>
-      </div>
-      <div class="board board${this.state.gridSize}">
-        ${repeat(
-          this.cards,
-          (card) => card.name,
-          (card, index) => html`
-            <memory-card
-              .name="${card.name}"
-              .set="${card.set}"
-              .exposed="${card.exposed}"
-              @click="${() => this.handleCardClick(index)}"
-            >
-            </memory-card>
+      ${this.loggedIn
+        ? html`
+            <div class="login-indicator">
+              Ingelogd als: ${auth.currentUser?.email}
+              <button @click="${this.logout}">Logout</button>
+            </div>
+            <div class="select-grid">
+              <select @change="${this.handleGridSizeChange}">
+                <option selected disabled>Kies je speelveld</option>
+                <option value="16">4 x 4</option>
+                <option value="24">5 x 5</option>
+                <option value="36">6 x 6</option>
+              </select>
+            </div>
+            <div class="scoreboard">
+              <p>Aantal pogingen: ${this.state.attempts}</p>
+            </div>
+            <div class="board board${this.state.gridSize}">
+              ${repeat(
+                this.cards,
+                (card) => card.name,
+                (card, index) => html`
+                  <memory-card
+                    .name="${card.name}"
+                    .set="${card.set}"
+                    .exposed="${card.exposed}"
+                    @click="${() => this.handleCardClick(index)}"
+                  >
+                  </memory-card>
+                `
+              )}
+            </div>
           `
-        )}
-      </div>
+        : html`<login-component></login-component>`}
     `;
   }
 
   async handleGridSizeChange(event: Event) {
     this.cards = await this.cardService.initializeCards(event);
-    this.state = this.cardService.getState(); // Update the state after initialization
     this.requestUpdate();
   }
 
   handleCardClick(index: number) {
     this.cardService.handleCardClick(index, () => this.requestUpdate());
+  }
+
+  logout() {
+    auth.signOut().then(() => {
+      this.loggedIn = false;
+      this.cards = [];
+      this.state = this.cardService.resetGameState(true);
+      this.requestUpdate();
+    });
   }
 }

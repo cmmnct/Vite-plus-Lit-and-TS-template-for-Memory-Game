@@ -1,48 +1,49 @@
 import { Card, CardSet, State } from "../models/models";
 import { GameLogic } from "../utils/gameLogic";
+import { auth, firestore } from "../../firebaseConfig";
+import { collection, getDocs, setDoc, doc, getDoc } from "firebase/firestore";
 
 export class CardService {
-  private state: State;
-
-  constructor() {
-    this.state = this.loadStateFromLocalStorage() || {
-      firstCard: null,
-      secondCard: null,
-      lockBoard: false,
-      attempts: 0,
-      gridSize: 0,
-      cards: [],
-    };
-  }
-
-  private cardSets: CardSet[] = [
-    { set: "duck", card1: "", card2: "" },
-    { set: "kitten", card1: "", card2: "" },
-    // Voeg hier de overige cardSets toe zoals eerder gedefinieerd
-  ];
+  private state: State = {
+    firstCard: null,
+    secondCard: null,
+    lockBoard: false,
+    attempts: 0,
+    gridSize: 0,
+    cards: [],
+  };
 
   async initializeCards(event: Event): Promise<Card[]> {
     const target = event.target as HTMLSelectElement;
     this.state.gridSize = parseInt(target.value);
     this.resetGameState(true);
 
-    try {
-      const response = await fetch(
-        "https://my-json-server.typicode.com/cmmnct/cards/cards"
-      );
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      const data = await response.json();
-      const cards = data; // Aangepast om data rechtstreeks toe te wijzen
+    const response = await fetch(
+      "https://my-json-server.typicode.com/cmmnct/cards/cards"
+    );
+    const data = await response.json();
+    const cardSets = data;
 
-      this.state.cards = this.createCardsFromSets(cards, this.state.gridSize);
-      this.saveStateToLocalStorage();
-      return GameLogic.shuffle(this.state.cards);
-    } catch (error) {
-      console.error("Failed to fetch data:", error);
-      return [];
-    }
+    const totalCardSets = this.state.gridSize / 2;
+    const selectedCardSets = GameLogic.shuffle(cardSets).slice(
+      0,
+      totalCardSets
+    );
+
+    this.state.cards = [];
+    selectedCardSets.forEach((cardSet: CardSet) => {
+      if (cardSet.card1 && cardSet.card2) {
+        this.state.cards.push(this.createCard(cardSet.set, cardSet.card1));
+        this.state.cards.push(this.createCard(cardSet.set, cardSet.card2));
+      } else {
+        this.state.cards.push(this.createCard(cardSet.set));
+        this.state.cards.push(this.createCard(cardSet.set));
+      }
+    });
+
+    this.state.cards = GameLogic.shuffle(this.state.cards);
+    this.saveState();
+    return this.state.cards;
   }
 
   handleCardClick(index: number, updateCallback: () => void) {
@@ -54,7 +55,6 @@ export class CardService {
 
     if (!this.state.firstCard) {
       this.state.firstCard = clickedCard;
-      this.saveStateToLocalStorage();
       return;
     }
 
@@ -67,8 +67,10 @@ export class CardService {
       if (this.cardsLeft(this.state.cards)) {
         this.resetGameState();
         updateCallback();
+        this.saveState(); // Save state after match is found
       } else {
         alert("Gefeliciteerd! Je hebt alle kaarten gevonden.");
+        this.saveState(); // Save state when all cards are matched
       }
     } else {
       setTimeout(() => {
@@ -76,39 +78,67 @@ export class CardService {
         this.state.secondCard!.exposed = false;
         this.resetGameState();
         updateCallback();
+        this.saveState(); // Save state after cards are flipped back
       }, 1000);
     }
-
-    this.saveStateToLocalStorage();
   }
 
-  getState(): State {
+  private async saveState() {
+    console.log("saveState");
+    const userId = auth.currentUser?.uid;
+    console.log("auth.currentUser:", auth.currentUser); // Toegevoegd voor debuggen
+    console.log("user ID = " + userId);
+
+    try {
+      if (userId) {
+        const stateRef = doc(firestore, `users/${userId}/gameState/state`);
+        console.log("firestore is set, stateRef:", stateRef);
+        await setDoc(stateRef, this.state);
+        console.log("State saved to Firestore"); // Toegevoegd voor debuggen
+      } else {
+        console.log("Saving state to local storage");
+        localStorage.setItem("memoryGameState", JSON.stringify(this.state));
+        console.log("State saved to local storage"); // Toegevoegd voor debuggen
+      }
+    } catch (error) {
+      console.error("Error saving state:", error);
+    }
+  }
+
+  async loadState() {
+    const userId = auth.currentUser?.uid;
+    if (userId) {
+      try {
+        const stateRef = doc(firestore, `users/${userId}/gameState/state`);
+        const stateDoc = await getDoc(stateRef);
+        if (stateDoc.exists()) {
+          this.state = stateDoc.data() as State;
+          console.log("State loaded from Firestore:", this.state);
+        } else {
+          console.log(
+            "No state document found in Firestore, using default state."
+          );
+        }
+      } catch (error) {
+        console.error("Error loading state from Firestore:", error);
+      }
+    } else {
+      const savedState = localStorage.getItem("memoryGameState");
+      if (savedState) {
+        this.state = JSON.parse(savedState);
+        console.log("State loaded from local storage:", this.state);
+      } else {
+        console.log("No state found in local storage, using default state.");
+      }
+    }
+  }
+
+  getState() {
     return this.state;
   }
 
   private cardsLeft(cards: Card[]): boolean {
     return cards.some((card) => !card.exposed);
-  }
-
-  private createCardsFromSets(cardSets: CardSet[], gridSize: number): Card[] {
-    const totalCardSets = gridSize / 2;
-    const selectedCardSets = GameLogic.shuffle([...cardSets]).slice(
-      0,
-      totalCardSets
-    );
-
-    const cards: Card[] = [];
-    selectedCardSets.forEach((cardSet: CardSet) => {
-      if (cardSet.card1 && cardSet.card2) {
-        cards.push(this.createCard(cardSet.set, cardSet.card1));
-        cards.push(this.createCard(cardSet.set, cardSet.card2));
-      } else {
-        cards.push(this.createCard(cardSet.set));
-        cards.push(this.createCard(cardSet.set));
-      }
-    });
-
-    return cards;
   }
 
   private createCard(
@@ -123,7 +153,7 @@ export class CardService {
     };
   }
 
-  private resetGameState(init: boolean = false) {
+  resetGameState(init: boolean = false) {
     this.state.firstCard = null;
     this.state.secondCard = null;
     this.state.lockBoard = false;
@@ -131,7 +161,7 @@ export class CardService {
       this.state.attempts = 0;
       this.state.cards = [];
     }
-    this.saveStateToLocalStorage();
+    return this.state;
   }
 
   private isInvalidClick(clickedCard: Card): boolean {
@@ -140,14 +170,5 @@ export class CardService {
       clickedCard === this.state.firstCard ||
       clickedCard.exposed
     );
-  }
-
-  private saveStateToLocalStorage() {
-    localStorage.setItem("memoryGameState", JSON.stringify(this.state));
-  }
-
-  private loadStateFromLocalStorage(): State | null {
-    const state = localStorage.getItem("memoryGameState");
-    return state ? JSON.parse(state) : null;
   }
 }
