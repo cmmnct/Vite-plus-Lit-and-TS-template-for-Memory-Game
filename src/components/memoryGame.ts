@@ -7,11 +7,13 @@ import { repeat } from "lit/directives/repeat.js";
 import { auth } from "../../firebaseConfig";
 import { onAuthStateChanged } from "firebase/auth";
 import "./loginComponent.js";
+import "./resultComponent.js"; // Voeg de result component toe
 
 @customElement("memory-game")
 export class MemoryGame extends LitElement {
   @property({ type: Array }) cards: Card[] = [];
   @property({ type: Boolean }) loggedIn: boolean = false;
+  @property({ type: Boolean }) showResults: boolean = false; // Voeg showResults property toe
 
   cardService: CardService;
   state: State;
@@ -100,6 +102,9 @@ export class MemoryGame extends LitElement {
             <div class="scoreboard">
               <p>Aantal pogingen: ${this.state.attempts}</p>
             </div>
+            <button class="results-button" @click="${this.showStats}">
+              Show Stats
+            </button>
             <div class="board board${this.state.gridSize}">
               ${repeat(
                 this.cards,
@@ -117,6 +122,12 @@ export class MemoryGame extends LitElement {
             </div>
           `
         : html`<login-component></login-component>`}
+      ${this.showResults
+        ? html`<result-component
+            .results="${this.state.results}"
+            @close-popup="${this.closePopup}"
+          ></result-component>`
+        : ""}
     `;
   }
 
@@ -136,5 +147,13 @@ export class MemoryGame extends LitElement {
       this.state = this.cardService.resetGameState(true);
       this.requestUpdate();
     });
+  }
+  showStats() {
+    this.showResults = true;
+  }
+
+  closePopup() {
+    console.log("closed")
+    this.showResults = false;
   }
 }

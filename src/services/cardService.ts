@@ -1,4 +1,4 @@
-import { Card, CardSet, State } from "../models/models";
+import { Card, CardSet, State, Result } from "../models/models";
 import { GameLogic } from "../utils/gameLogic";
 import { auth, firestore } from "../../firebaseConfig";
 import { collection, getDocs, setDoc, doc, getDoc } from "firebase/firestore";
@@ -11,6 +11,8 @@ export class CardService {
     attempts: 0,
     gridSize: 0,
     cards: [],
+    results: [
+    ],
   };
 
   async initializeCards(event: Event): Promise<Card[]> {
@@ -70,7 +72,7 @@ export class CardService {
         this.saveState(); // Save state after match is found
       } else {
         alert("Gefeliciteerd! Je hebt alle kaarten gevonden.");
-        this.saveState(); // Save state when all cards are matched
+        this.addResult(); // Voeg deze regel toe om het resultaat toe te voegen als het spel eindigt
       }
     } else {
       setTimeout(() => {
@@ -78,9 +80,24 @@ export class CardService {
         this.state.secondCard!.exposed = false;
         this.resetGameState();
         updateCallback();
-        this.saveState(); // Save state after cards are flipped back
       }, 1000);
     }
+  }
+  private addResult() {
+    const result: Result = {
+      date: new Date().toISOString(),
+      attempts: this.state.attempts,
+      gridSize: this.state.gridSize!,
+      score: this.calculateScore(),
+    };
+    console.log(this.state.results);
+    console.log(result);
+    this.state.results.push(result);
+    this.saveState();
+  }
+
+  private calculateScore(): number {
+    return Math.max(0, this.state.gridSize! * 2 - this.state.attempts);
   }
 
   private async saveState() {
@@ -171,4 +188,5 @@ export class CardService {
       clickedCard.exposed
     );
   }
+  
 }

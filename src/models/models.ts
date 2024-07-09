@@ -10,6 +10,13 @@ export type CardSet = {
   card2?: string;
 };
 
+export type Result = {
+  date: string;
+  attempts: number;
+  gridSize: number;
+  score: number;
+};
+
 export type State = {
   firstCard: Card | null;
   secondCard: Card | null;
@@ -17,4 +24,5 @@ export type State = {
   attempts: number;
   gridSize?: number;
   cards: Card[]; // voeg deze regel toe
+  results:Result[]
 };
