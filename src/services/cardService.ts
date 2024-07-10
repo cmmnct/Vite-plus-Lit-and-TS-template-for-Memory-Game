@@ -1,5 +1,6 @@
 import { Card, CardSet, State } from "../models/models";
-import { GameLogic } from "../utils/gameLogic";import {
+import { GameLogic } from "../utils/gameLogic";
+import {
   saveToLocalStorage,
   loadFromLocalStorage,
 } from "../utils/localStorageHelper";
@@ -18,13 +19,7 @@ export class CardService {
     };
   }
 
-  private cardSets: CardSet[] = [
-    { set: "duck", card1: "", card2: "" },
-    { set: "kitten", card1: "", card2: "" },
-    // Voeg hier de overige cardSets toe zoals eerder gedefinieerd
-  ];
-
-  async initializeCards(event: Event): Promise<Card[]> {
+  async initializeCards(event: Event): Promise<State> {
     const target = event.target as HTMLSelectElement;
     this.state.gridSize = parseInt(target.value);
     this.resetGameState(true);
@@ -36,15 +31,14 @@ export class CardService {
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
-      const data = await response.json();
-      const cards = data; // Aangepast om data rechtstreeks toe te wijzen
-
-      this.state.cards = this.createCardsFromSets(cards, this.state.gridSize);
+      const cardData = await response.json();
+      const cards = this.createCardsFromSets(cardData, this.state.gridSize);
+      this.state.cards = GameLogic.shuffle(cards);
       this.saveGameState();
-      return GameLogic.shuffle(this.state.cards);
+      return this.state;
     } catch (error) {
       console.error("Failed to fetch data:", error);
-      return [];
+      return this.state;
     }
   }
 
@@ -57,7 +51,6 @@ export class CardService {
 
     if (!this.state.firstCard) {
       this.state.firstCard = clickedCard;
-      this.saveGameState();
       return;
     }
 
@@ -155,6 +148,4 @@ export class CardService {
       return savedState;
     }
   }
-
-
 }

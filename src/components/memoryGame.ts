@@ -53,7 +53,6 @@ export class MemoryGame extends LitElement {
     super();
     this.cardService = new CardService();
     this.state = this.cardService.getState();
-    this.cards = this.state.cards; // Haal de kaarten vanuit de state
   }
 
   render() {
@@ -71,7 +70,7 @@ export class MemoryGame extends LitElement {
       </div>
       <div class="board board${this.state.gridSize}">
         ${repeat(
-          this.cards,
+          this.state.cards,
           (card) => card.name,
           (card, index) => html`
             <memory-card
@@ -88,8 +87,7 @@ export class MemoryGame extends LitElement {
   }
 
   async handleGridSizeChange(event: Event) {
-    this.cards = await this.cardService.initializeCards(event);
-    this.state = this.cardService.getState(); // Update the state after initialization
+    this.state = await this.cardService.initializeCards(event);
     this.requestUpdate();
   }
 
