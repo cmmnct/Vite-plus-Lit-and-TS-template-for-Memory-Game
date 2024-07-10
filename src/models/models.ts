@@ -16,4 +16,5 @@ export type State = {
   lockBoard: boolean;
   attempts: number;
   gridSize?: number;
+  cards: Card[]; // voeg deze regel toe
 };

@@ -1,6 +1,8 @@
 import { Card, CardSet, State } from "../models/models";
 import { GameLogic } from "../utils/gameLogic";
-import { injectable } from "inversify";
+import { injectable } from "inversify";// cardService.ts
+import { saveToLocalStorage, loadFromLocalStorage } from "../utils/localStorageHelper";
+
 
 @injectable()
 export class CardService {
@@ -11,7 +13,12 @@ export class CardService {
     lockBoard: false,
     attempts: 0,
     gridSize: 0,
+    cards: [],
   };
+
+  constructor() {
+    this.loadGameState();
+  }
 
   private cardSets: CardSet[] = [
     { set: "duck", card1: "", card2: "" },
@@ -43,7 +50,9 @@ export class CardService {
   // Game functions
 
   initializeCards(event: Event): Card[] {
-    this.state.gridSize = parseInt((event.target as HTMLSelectElement).value);
+    const target = event.target as HTMLSelectElement;
+    this.state.gridSize = parseInt(target.value);
+
     this.resetGameState(true);
     const totalCardSets = this.state.gridSize / 2;
     const selectedCardSets = GameLogic.shuffle([...this.cardSets]).slice(
@@ -51,22 +60,23 @@ export class CardService {
       totalCardSets
     );
 
-    this.cards = [];
+    this.state.cards = [];
     selectedCardSets.forEach((cardSet: CardSet) => {
       if (cardSet.card1 && cardSet.card2) {
-        this.cards.push(this.createCard(cardSet.set, cardSet.card1));
-        this.cards.push(this.createCard(cardSet.set, cardSet.card2));
+        this.state.cards.push(this.createCard(cardSet.set, cardSet.card1));
+        this.state.cards.push(this.createCard(cardSet.set, cardSet.card2));
       } else {
-        this.cards.push(this.createCard(cardSet.set));
-        this.cards.push(this.createCard(cardSet.set));
+        this.state.cards.push(this.createCard(cardSet.set));
+        this.state.cards.push(this.createCard(cardSet.set));
       }
     });
 
-    return GameLogic.shuffle(this.cards);
+    this.saveGameState(); // opslaan in de local storage
+    return GameLogic.shuffle(this.state.cards);
   }
 
   handleCardClick(index: number, updateCallback: () => void) {
-    const clickedCard = this.cards[index];
+    const clickedCard = this.state.cards[index]; // cards in het state object
     if (this.isInvalidClick(clickedCard)) return;
 
     clickedCard.exposed = true;
@@ -83,7 +93,8 @@ export class CardService {
     updateCallback();
 
     if (this.state.firstCard.set === this.state.secondCard.set) {
-      if (this.cardsLeft(this.cards)) {
+      if (this.cardsLeft(this.state.cards)) {
+        // cards in het state object
         this.resetGameState();
         updateCallback();
       } else {
@@ -97,6 +108,8 @@ export class CardService {
         updateCallback();
       }, 1000);
     }
+
+    this.saveGameState(); // state opslaan in de local storage
   }
 
   getState() {
@@ -140,5 +153,16 @@ export class CardService {
       clickedCard === this.state.firstCard ||
       clickedCard.exposed
     );
+  }
+
+  private saveGameState() {
+    saveToLocalStorage("memoryGameState", this.state);
+  }
+
+  private loadGameState() {
+    const savedState = loadFromLocalStorage("memoryGameState");
+    if (savedState) {
+      this.state = savedState;
+    }
   }
 }

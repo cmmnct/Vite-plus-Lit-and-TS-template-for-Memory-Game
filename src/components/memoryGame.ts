@@ -57,6 +57,7 @@ export class MemoryGame extends LitElement {
     this.cards = [];
     this.cardService = container.get<CardService>(TYPES.CardService);
     this.state = this.cardService.getState();
+    this.cards = this.state.cards; // Haal de kaarten vanuit de state
   }
 
   render() {
