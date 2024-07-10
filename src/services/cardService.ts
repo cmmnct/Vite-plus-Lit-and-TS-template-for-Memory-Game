@@ -1,11 +1,14 @@
 import { Card, CardSet, State } from "../models/models";
-import { GameLogic } from "../utils/gameLogic";
+import { GameLogic } from "../utils/gameLogic";import {
+  saveToLocalStorage,
+  loadFromLocalStorage,
+} from "../utils/localStorageHelper";
 
 export class CardService {
   private state: State;
 
   constructor() {
-    this.state = this.loadStateFromLocalStorage() || {
+    this.state = this.loadGameState() || {
       firstCard: null,
       secondCard: null,
       lockBoard: false,
@@ -37,7 +40,7 @@ export class CardService {
       const cards = data; // Aangepast om data rechtstreeks toe te wijzen
 
       this.state.cards = this.createCardsFromSets(cards, this.state.gridSize);
-      this.saveStateToLocalStorage();
+      this.saveGameState();
       return GameLogic.shuffle(this.state.cards);
     } catch (error) {
       console.error("Failed to fetch data:", error);
@@ -54,7 +57,7 @@ export class CardService {
 
     if (!this.state.firstCard) {
       this.state.firstCard = clickedCard;
-      this.saveStateToLocalStorage();
+      this.saveGameState();
       return;
     }
 
@@ -79,7 +82,7 @@ export class CardService {
       }, 1000);
     }
 
-    this.saveStateToLocalStorage();
+    this.saveGameState();
   }
 
   getState(): State {
@@ -131,7 +134,7 @@ export class CardService {
       this.state.attempts = 0;
       this.state.cards = [];
     }
-    this.saveStateToLocalStorage();
+    this.saveGameState();
   }
 
   private isInvalidClick(clickedCard: Card): boolean {
@@ -142,12 +145,16 @@ export class CardService {
     );
   }
 
-  private saveStateToLocalStorage() {
-    localStorage.setItem("memoryGameState", JSON.stringify(this.state));
+  private saveGameState() {
+    saveToLocalStorage("memoryGameState", this.state);
   }
 
-  private loadStateFromLocalStorage(): State | null {
-    const state = localStorage.getItem("memoryGameState");
-    return state ? JSON.parse(state) : null;
+  private loadGameState() {
+    const savedState = loadFromLocalStorage("memoryGameState");
+    if (savedState) {
+      return savedState;
+    }
   }
+
+
 }
