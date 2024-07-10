@@ -49,7 +49,7 @@ export class CardService {
 
   // Game functions
 
-  initializeCards(event: Event): Card[] {
+  initializeCards(event: Event): State {
     const target = event.target as HTMLSelectElement;
     this.state.gridSize = parseInt(target.value);
 
@@ -70,9 +70,9 @@ export class CardService {
         this.state.cards.push(this.createCard(cardSet.set));
       }
     });
-
+    this.state.cards = GameLogic.shuffle(this.state.cards);
     this.saveGameState(); // opslaan in de local storage
-    return GameLogic.shuffle(this.state.cards);
+    return this.state
   }
 
   handleCardClick(index: number, updateCallback: () => void) {

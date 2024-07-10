@@ -7,7 +7,6 @@ import { repeat } from "lit/directives/repeat.js";
 import { container } from "../../inversify.config";
 import { TYPES } from "../../inversify.config";
 
-
 @customElement("memory-game")
 export class MemoryGame extends LitElement {
   @property({ type: Array }) cards: Card[] = [];
@@ -57,7 +56,6 @@ export class MemoryGame extends LitElement {
     this.cards = [];
     this.cardService = container.get<CardService>(TYPES.CardService);
     this.state = this.cardService.getState();
-    this.cards = this.state.cards; // Haal de kaarten vanuit de state
   }
 
   render() {
@@ -75,7 +73,7 @@ export class MemoryGame extends LitElement {
       </div>
       <div class="board board${this.state.gridSize}">
         ${repeat(
-          this.cards,
+          this.state.cards,
           (card) => card.name,
           (card, index) => html`
             <memory-card
@@ -92,7 +90,7 @@ export class MemoryGame extends LitElement {
   }
 
   handleGridSizeChange(event: Event) {
-    this.cards = this.cardService.initializeCards(event);
+    this.state = this.cardService.initializeCards(event);
     this.requestUpdate();
   }
 
