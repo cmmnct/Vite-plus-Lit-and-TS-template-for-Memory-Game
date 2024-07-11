@@ -14,6 +14,7 @@ export class MemoryGame extends LitElement {
   @property({ type: Array }) cards: Card[] = [];
   @property({ type: Boolean }) loggedIn: boolean = false;
   @property({ type: Boolean }) showResults: boolean = false; // Voeg showResults property toe
+  @property({ type: Boolean }) loginState: boolean = false; // Voeg showResults property toe
 
   cardService: CardService;
   state: State;
@@ -69,11 +70,13 @@ export class MemoryGame extends LitElement {
       if (user) {
         this.loggedIn = true;
         this.loadState();
+        this.loginState = false;
       } else {
         this.loggedIn = false;
       }
       this.requestUpdate();
     });
+    
   }
 
   async loadState() {
@@ -86,51 +89,50 @@ export class MemoryGame extends LitElement {
   render() {
     return html`
       ${this.loggedIn
-        ? html`
-            <div class="login-indicator">
-              Ingelogd als: ${auth.currentUser?.email}
-              <button @click="${this.logout}">Logout</button>
-            </div>
-            <div class="select-grid">
-              <select @change="${this.handleGridSizeChange}">
-                <option selected disabled>Kies je speelveld</option>
-                <option value="16">4 x 4</option>
-                <option value="24">5 x 5</option>
-                <option value="36">6 x 6</option>
-              </select>
-            </div>
-            <div class="scoreboard">
-              <p>Aantal pogingen: ${this.state.attempts}</p>
-            </div>
-            <button class="results-button" @click="${this.showStats}">
-              Show Stats
-            </button>
-            <div class="board board${this.state.gridSize}">
-              ${repeat(
-                this.cards,
-                (card) => card.name,
-                (card, index) => html`
-                  <memory-card
-                    .name="${card.name}"
-                    .set="${card.set}"
-                    .exposed="${card.exposed}"
-                    @click="${() => this.handleCardClick(index)}"
-                  >
-                  </memory-card>
-                `
-              )}
-            </div>
+        ? html` <div class="login-indicator">
+            Ingelogd als: ${auth.currentUser?.email}
+            <button @click="${this.logout}">Logout</button>
+          </div>`
+        : html` <div class="login-indicator">
+            <button @click="${this.login}">Login</button>
+          </div>`}
+      <div class="select-grid">
+        <select @change="${this.handleGridSizeChange}">
+          <option selected disabled>Kies je speelveld</option>
+          <option value="16">4 x 4</option>
+          <option value="24">5 x 5</option>
+          <option value="36">6 x 6</option>
+        </select>
+      </div>
+      <div class="scoreboard">
+        <p>Aantal pogingen: ${this.state.attempts}</p>
+      </div>
+      <div class="board board${this.state.gridSize}">
+        ${repeat(
+          this.state.cards,
+          (card) => card.name,
+          (card, index) => html`
+            <memory-card
+              .name="${card.name}"
+              .set="${card.set}"
+              .exposed="${card.exposed}"
+              @click="${() => this.handleCardClick(index)}"
+            >
+            </memory-card>
           `
-        : html`<login-component></login-component>`}
-      ${this.showResults
-        ? html`<result-component
-            .results="${this.state.results}"
-            @close-popup="${this.closePopup}"
-          ></result-component>`
+        )}
+      </div>
+      ${this.loginState
+        ? html`<div class="login-overlay">
+            <login-component @cancel="${() => this.loginState = false}"></login-component>
+          </div>`
         : ""}
     `;
   }
-
+  login() {
+    this.loginState = true;
+  }
+  
   async handleGridSizeChange(event: Event) {
     this.cards = await this.cardService.initializeCards(event);
     this.requestUpdate();
@@ -153,7 +155,7 @@ export class MemoryGame extends LitElement {
   }
 
   closePopup() {
-    console.log("closed")
+    console.log("closed");
     this.showResults = false;
   }
 }

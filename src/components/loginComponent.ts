@@ -77,9 +77,9 @@ export class LoginComponent extends LitElement {
             .value=${this.password}
             @input=${this.updatePassword}
           />
-          <button @click=${this.login}>Login</button>
-          <button @click=${this.register}>Register</button>
-          <button @click=${this.cancel}>Cancel</button>
+          <button @click="${this.login}">Login</button>
+          <button @click="${this.register}">Register</button>
+          <button @click="${this.cancel}">Cancel</button>
           <div class="message">${this.message}</div>
         </div>
       </div>
@@ -106,7 +106,7 @@ export class LoginComponent extends LitElement {
       this.message = `Error: ${error.message}`;
     }
   }
-  async cancel() {
+  cancel() {
     this.dispatchEvent(
       new CustomEvent("cancel", { bubbles: true, composed: true })
     );
