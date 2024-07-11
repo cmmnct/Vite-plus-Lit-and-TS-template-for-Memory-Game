@@ -1,7 +1,6 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import {
-  getAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from "firebase/auth";
@@ -14,7 +13,28 @@ export class LoginComponent extends LitElement {
   @property({ type: String }) message: string = "";
 
   static styles = css`
+    .popup {
+      width: 80vw;
+      max-width: 1024px;
+    }
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+    }
     .container {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
       display: flex;
       flex-direction: column;
       width: 300px;
@@ -42,23 +62,26 @@ export class LoginComponent extends LitElement {
 
   render() {
     return html`
-      <div class="container">
-        <h2>Login</h2>
-        <input
-          type="email"
-          placeholder="Email"
-          .value=${this.email}
-          @input=${this.updateEmail}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          .value=${this.password}
-          @input=${this.updatePassword}
-        />
-        <button @click=${this.login}>Login</button>
-        <button @click=${this.register}>Register</button>
-        <div class="message">${this.message}</div>
+      <div class="overlay">
+        <div class="container">
+          <h2>Login</h2>
+          <input
+            type="email"
+            placeholder="Email"
+            .value=${this.email}
+            @input=${this.updateEmail}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            .value=${this.password}
+            @input=${this.updatePassword}
+          />
+          <button @click=${this.login}>Login</button>
+          <button @click=${this.register}>Register</button>
+          <button @click=${this.cancel}>Cancel</button>
+          <div class="message">${this.message}</div>
+        </div>
       </div>
     `;
   }
@@ -79,9 +102,14 @@ export class LoginComponent extends LitElement {
         this.password
       );
       this.message = `Logged in as ${userCredential.user.email}`;
-    } catch (error:any) {
+    } catch (error: any) {
       this.message = `Error: ${error.message}`;
     }
+  }
+  async cancel() {
+    this.dispatchEvent(
+      new CustomEvent("cancel", { bubbles: true, composed: true })
+    );
   }
 
   async register() {
@@ -92,7 +120,7 @@ export class LoginComponent extends LitElement {
         this.password
       );
       this.message = `Registered as ${userCredential.user.email}`;
-    } catch (error:any) {
+    } catch (error: any) {
       this.message = `Error: ${error.message}`;
     }
   }
