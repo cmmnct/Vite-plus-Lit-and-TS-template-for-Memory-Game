@@ -1,26 +1,20 @@
-import { Card, CardSet, State, Result } from "../models/models";
+import { Card, CardSet, Result, State } from "../models/models";
 import { GameLogic } from "../utils/gameLogic";
+import { inject, injectable } from "inversify";
+import { TYPES } from "../types";
 import { StateService } from "./stateService";
 
+@injectable()
 export class CardService {
-  private state: State = {
-    firstCard: null,
-    secondCard: null,
-    lockBoard: false,
-    attempts: 0,
-    gridSize: 0,
-    cards: [],
-    results: [],
-  };
-
-  constructor(private stateService: StateService) {
+  constructor(@inject(TYPES.StateService) private stateService: StateService) {
     this.loadState(); // Laad de state bij het initialiseren van de service
   }
 
-  async initializeCards(event: Event): Promise<State> {
+  async initializeCards(event: Event): Promise<void> {
     const target = event.target as HTMLSelectElement;
-    this.state.gridSize = parseInt(target.value);
-    this.resetGameState(true);
+    const gridSize = parseInt(target.value);
+    this.stateService.updateState({ gridSize });
+    this.stateService.resetState(true);
 
     try {
       const response = await fetch(
@@ -30,13 +24,12 @@ export class CardService {
         throw new Error("Network response was not ok");
       }
       const cardData = await response.json();
-      const cards = this.createCardsFromSets(cardData, this.state.gridSize);
-      this.state.cards = GameLogic.shuffle(cards);
-      this.saveState();
-      return this.state;
+      const cards = this.createCardsFromSets(cardData, gridSize);
+      const shuffledCards = GameLogic.shuffle(cards);
+      this.stateService.updateState({ cards: shuffledCards });
+      await this.stateService.saveState();
     } catch (error) {
       console.error("Failed to fetch data:", error);
-      return this.state;
     }
   }
 
@@ -62,70 +55,67 @@ export class CardService {
   }
 
   handleCardClick(index: number, updateCallback: () => void) {
-    const clickedCard = this.state.cards[index];
+    const state = this.stateService.getState();
+    const clickedCard = state.cards[index];
     if (this.isInvalidClick(clickedCard)) return;
 
     clickedCard.exposed = true;
     updateCallback();
 
-    if (!this.state.firstCard) {
-      this.state.firstCard = clickedCard;
+    if (!state.firstCard) {
+      this.stateService.updateState({ firstCard: clickedCard });
       return;
     }
 
-    this.state.secondCard = clickedCard;
-    this.state.attempts++;
-    this.state.lockBoard = true;
+    this.stateService.updateState({
+      secondCard: clickedCard,
+      attempts: state.attempts + 1,
+      lockBoard: true,
+    });
     updateCallback();
 
-    if (this.state.firstCard.set === this.state.secondCard.set) {
-      if (this.cardsLeft(this.state.cards)) {
-        this.resetGameState();
+    if (state.firstCard!.set === state.secondCard.set) {
+      if (this.cardsLeft(state.cards)) {
+        this.stateService.resetState();
         updateCallback();
-        this.saveState(); // Save state after match is found
+        this.saveState();
       } else {
         alert("Gefeliciteerd! Je hebt alle kaarten gevonden.");
-        this.addResult(); // Voeg deze regel toe om het resultaat toe te voegen als het spel eindigt
+        this.addResult();
       }
     } else {
       setTimeout(() => {
-        this.state.firstCard!.exposed = false;
-        this.state.secondCard!.exposed = false;
-        this.resetGameState();
+        state.firstCard!.exposed = false;
+        state.secondCard!.exposed = false;
+        this.stateService.resetState();
         updateCallback();
-        this.saveState(); // Save state after resetting the game state
+        this.saveState();
       }, 1000);
     }
   }
 
   private addResult() {
+    const state = this.stateService.getState();
     const result: Result = {
       date: new Date().toISOString(),
-      attempts: this.state.attempts,
-      gridSize: this.state.gridSize!,
-      score: this.calculateScore(),
+      attempts: state.attempts,
+      gridSize: state.gridSize!,
+      score: this.calculateScore(state),
     };
-    this.state.results.push(result);
+    state.results.push(result);
     this.saveState();
   }
 
-  private calculateScore(): number {
-    return Math.max(0, this.state.gridSize! * 2 - this.state.attempts);
+  private calculateScore(state: State): number {
+    return Math.max(0, state.gridSize! * 2 - state.attempts);
   }
 
   private async saveState() {
-    await this.stateService.saveState(this.state);
+    await this.stateService.saveState();
   }
 
   async loadState() {
-    const savedState = await this.stateService.loadState();
-    if (savedState) {
-      this.state = savedState;
-    }
-  }
-
-  getState() {
-    return this.state;
+    await this.stateService.loadState();
   }
 
   private cardsLeft(cards: Card[]): boolean {
@@ -144,21 +134,11 @@ export class CardService {
     };
   }
 
-  resetGameState(init: boolean = false) {
-    this.state.firstCard = null;
-    this.state.secondCard = null;
-    this.state.lockBoard = false;
-    if (init) {
-      this.state.attempts = 0;
-      this.state.cards = [];
-    }
-    return this.state;
-  }
-
   private isInvalidClick(clickedCard: Card): boolean {
+    const state = this.stateService.getState();
     return !!(
-      this.state.lockBoard ||
-      clickedCard === this.state.firstCard ||
+      state.lockBoard ||
+      clickedCard === state.firstCard ||
       clickedCard.exposed
     );
   }

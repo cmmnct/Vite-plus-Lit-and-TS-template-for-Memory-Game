@@ -1,25 +1,27 @@
 import { LitElement, html, css } from "lit";
 import { property, customElement } from "lit/decorators.js";
 import "./memoryCard.js";
-import { Card, State } from "../models/models";
+import { Card } from "../models/models";
+import { container } from "../../inversify.config";
+import { TYPES } from "../types";
 import { CardService } from "../services/cardService";
-import { StateService } from "../services/stateService"; // Import the new service
+import { StateService } from "../services/stateService";
 import { repeat } from "lit/directives/repeat.js";
-import { auth} from "../../firebaseConfig";
-import { onAuthStateChanged } from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import "./loginComponent.js";
-import "./resultComponent.js"; // Voeg de result component toe
+import "./resultComponent.js";
+
+const auth = getAuth();
 
 @customElement("memory-game")
 export class MemoryGame extends LitElement {
   @property({ type: Array }) cards: Card[] = [];
   @property({ type: Boolean }) loggedIn: boolean = false;
-  @property({ type: Boolean }) showResults: boolean = false; // Voeg showResults property toe
-  @property({ type: Boolean }) loginState: boolean = false; // Voeg showResults property toe
+  @property({ type: Boolean }) showResults: boolean = false;
+  @property({ type: Boolean }) loginState: boolean = false;
 
   cardService: CardService;
-  stateService: StateService; // Voeg de stateService property toe
-  state: State;
+  stateService: StateService;
 
   static styles = css`
     .board {
@@ -65,26 +67,20 @@ export class MemoryGame extends LitElement {
 
   constructor() {
     super();
-    this.stateService = new StateService(); // Instantieer de stateService
-    this.cardService = new CardService(this.stateService); // Geef de stateService door aan de cardService
-    this.state = this.cardService.getState();
+    this.cardService = container.get<CardService>(TYPES.CardService);
+    this.stateService = container.get<StateService>(TYPES.StateService);
 
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
       if (user) {
         this.loggedIn = true;
-        this.loadState();
+        await this.stateService.loadState();
+        this.cards = this.stateService.getState().cards;
         this.loginState = false;
       } else {
         this.loggedIn = false;
       }
       this.requestUpdate();
     });
-  }
-
-  async loadState() {
-    await this.cardService.loadState();
-    this.state = this.cardService.getState();
-    this.requestUpdate();
   }
 
   render() {
@@ -106,11 +102,11 @@ export class MemoryGame extends LitElement {
         </select>
       </div>
       <div class="scoreboard">
-        <p>Aantal pogingen: ${this.state.attempts}</p>
+        <p>Aantal pogingen: ${this.stateService.getState().attempts}</p>
       </div>
-      <div class="board board${this.state.gridSize}">
+      <div class="board board${this.stateService.getState().gridSize}">
         ${repeat(
-          this.state.cards,
+          this.stateService.getState().cards,
           (card) => card.name,
           (card, index) => html`
             <memory-card
@@ -138,7 +134,8 @@ export class MemoryGame extends LitElement {
   }
 
   async handleGridSizeChange(event: Event) {
-    this.state = await this.cardService.initializeCards(event);
+    await this.cardService.initializeCards(event);
+    this.cards = this.stateService.getState().cards;
     this.requestUpdate();
   }
 
@@ -150,7 +147,7 @@ export class MemoryGame extends LitElement {
     auth.signOut().then(() => {
       this.loggedIn = false;
       this.cards = [];
-      this.state = this.cardService.resetGameState(true);
+      this.stateService.resetState(true);
       this.requestUpdate();
     });
   }
