@@ -55,7 +55,7 @@ export class CardService {
   }
 
   handleCardClick(index: number, updateCallback: () => void) {
-    const state = this.stateService.getState();
+    let state = this.stateService.getState();
     const clickedCard = state.cards[index];
     if (this.isInvalidClick(clickedCard)) return;
 
@@ -72,9 +72,10 @@ export class CardService {
       attempts: state.attempts + 1,
       lockBoard: true,
     });
+    state = this.stateService.getState(); // Update state after changes
     updateCallback();
 
-    if (state.firstCard!.set === state.secondCard.set) {
+    if (state.firstCard!.set === state.secondCard!.set) {
       if (this.cardsLeft(state.cards)) {
         this.stateService.resetState();
         updateCallback();
@@ -102,7 +103,7 @@ export class CardService {
       gridSize: state.gridSize!,
       score: this.calculateScore(state),
     };
-    state.results.push(result);
+    this.stateService.updateState({ results: [...state.results, result] });
     this.saveState();
   }
 
