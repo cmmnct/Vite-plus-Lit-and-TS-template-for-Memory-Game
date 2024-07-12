@@ -3,8 +3,9 @@ import { property, customElement } from "lit/decorators.js";
 import "./memoryCard.js";
 import { Card, State } from "../models/models";
 import { CardService } from "../services/cardService";
+import { StateService } from "../services/stateService"; // Import the new service
 import { repeat } from "lit/directives/repeat.js";
-import { auth } from "../../firebaseConfig";
+import { auth} from "../../firebaseConfig";
 import { onAuthStateChanged } from "firebase/auth";
 import "./loginComponent.js";
 import "./resultComponent.js"; // Voeg de result component toe
@@ -17,6 +18,7 @@ export class MemoryGame extends LitElement {
   @property({ type: Boolean }) loginState: boolean = false; // Voeg showResults property toe
 
   cardService: CardService;
+  stateService: StateService; // Voeg de stateService property toe
   state: State;
 
   static styles = css`
@@ -63,7 +65,8 @@ export class MemoryGame extends LitElement {
 
   constructor() {
     super();
-    this.cardService = new CardService();
+    this.stateService = new StateService(); // Instantieer de stateService
+    this.cardService = new CardService(this.stateService); // Geef de stateService door aan de cardService
     this.state = this.cardService.getState();
 
     onAuthStateChanged(auth, (user) => {
@@ -76,7 +79,6 @@ export class MemoryGame extends LitElement {
       }
       this.requestUpdate();
     });
-    
   }
 
   async loadState() {
@@ -124,15 +126,18 @@ export class MemoryGame extends LitElement {
       </div>
       ${this.loginState
         ? html`<div class="login-overlay">
-            <login-component @cancel="${() => this.loginState = false}"></login-component>
+            <login-component
+              @cancel="${() => (this.loginState = false)}"
+            ></login-component>
           </div>`
         : ""}
     `;
   }
+
   login() {
     this.loginState = true;
   }
-  
+
   async handleGridSizeChange(event: Event) {
     this.cards = await this.cardService.initializeCards(event);
     this.requestUpdate();
@@ -150,6 +155,7 @@ export class MemoryGame extends LitElement {
       this.requestUpdate();
     });
   }
+
   showStats() {
     this.showResults = true;
   }

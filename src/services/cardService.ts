@@ -1,7 +1,6 @@
 import { Card, CardSet, State, Result } from "../models/models";
 import { GameLogic } from "../utils/gameLogic";
-import { auth, firestore } from "../../firebaseConfig";
-import { collection, getDocs, setDoc, doc, getDoc } from "firebase/firestore";
+import { StateService } from "./stateService";
 
 export class CardService {
   private state: State = {
@@ -14,7 +13,7 @@ export class CardService {
     results: [],
   };
 
-  constructor() {
+  constructor(private stateService: StateService) {
     this.loadState(); // Laad de state bij het initialiseren van de service
   }
 
@@ -104,52 +103,13 @@ export class CardService {
   }
 
   private async saveState() {
-    console.log("saveState");
-    const userId = auth.currentUser?.uid;
-    console.log("auth.currentUser:", auth.currentUser); // Toegevoegd voor debuggen
-    console.log("user ID = " + userId);
-
-    try {
-      if (userId) {
-        const stateRef = doc(firestore, `users/${userId}/gameState/state`);
-        console.log("firestore is set, stateRef:", stateRef);
-        await setDoc(stateRef, this.state);
-        console.log("State saved to Firestore"); // Toegevoegd voor debuggen
-      } else {
-        console.log("Saving state to local storage");
-        localStorage.setItem("memoryGameState", JSON.stringify(this.state));
-        console.log("State saved to local storage"); // Toegevoegd voor debuggen
-      }
-    } catch (error) {
-      console.error("Error saving state:", error);
-    }
+    await this.stateService.saveState(this.state);
   }
 
   async loadState() {
-    const userId = auth.currentUser?.uid;
-    if (userId) {
-      try {
-        const stateRef = doc(firestore, `users/${userId}/gameState/state`);
-        const stateDoc = await getDoc(stateRef);
-        if (stateDoc.exists()) {
-          this.state = stateDoc.data() as State;
-          console.log("State loaded from Firestore:", this.state);
-        } else {
-          console.log(
-            "No state document found in Firestore, using default state."
-          );
-        }
-      } catch (error) {
-        console.error("Error loading state from Firestore:", error);
-      }
-    } else {
-      const savedState = localStorage.getItem("memoryGameState");
-      if (savedState) {
-        this.state = JSON.parse(savedState);
-        console.log("State loaded from local storage:", this.state);
-      } else {
-        console.log("No state found in local storage, using default state.");
-      }
+    const savedState = await this.stateService.loadState();
+    if (savedState) {
+      this.state = savedState;
     }
   }
 
