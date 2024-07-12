@@ -2,6 +2,7 @@ import { auth, firestore } from "../../firebaseConfig";
 import { getAuth, onAuthStateChanged, User } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { State } from "../models/models";
+import { loadFromLocalStorage, saveToLocalStorage } from "../utils/localStorageHelper";
 
 export class StateService {
   private user: User | null = null;
@@ -22,7 +23,7 @@ export class StateService {
       const stateRef = doc(firestore, `users/${userId}/gameState/state`);
       await setDoc(stateRef, state);
     } else {
-      localStorage.setItem("memoryGameState", JSON.stringify(state));
+        saveToLocalStorage("memoryGameState", state);
     }
   }
 
@@ -35,7 +36,7 @@ export class StateService {
         return stateDoc.data() as State;
       }
     } else {
-      const savedState = localStorage.getItem("memoryGameState");
+      const savedState = loadFromLocalStorage("memoryGameState");
       if (savedState) {
         return JSON.parse(savedState) as State;
       }

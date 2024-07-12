@@ -84,7 +84,6 @@ export class MemoryGame extends LitElement {
   async loadState() {
     await this.cardService.loadState();
     this.state = this.cardService.getState();
-    this.cards = this.state.cards;
     this.requestUpdate();
   }
 
@@ -139,7 +138,7 @@ export class MemoryGame extends LitElement {
   }
 
   async handleGridSizeChange(event: Event) {
-    this.cards = await this.cardService.initializeCards(event);
+    this.state = await this.cardService.initializeCards(event);
     this.requestUpdate();
   }
 
