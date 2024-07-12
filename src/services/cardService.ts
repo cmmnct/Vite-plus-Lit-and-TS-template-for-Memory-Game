@@ -11,9 +11,12 @@ export class CardService {
     attempts: 0,
     gridSize: 0,
     cards: [],
-    results: [
-    ],
+    results: [],
   };
+
+  constructor() {
+    this.loadState(); // Laad de state bij het initialiseren van de service
+  }
 
   async initializeCards(event: Event): Promise<Card[]> {
     const target = event.target as HTMLSelectElement;
@@ -80,9 +83,11 @@ export class CardService {
         this.state.secondCard!.exposed = false;
         this.resetGameState();
         updateCallback();
+        this.saveState(); // Save state after resetting the game state
       }, 1000);
     }
   }
+
   private addResult() {
     const result: Result = {
       date: new Date().toISOString(),
@@ -90,8 +95,6 @@ export class CardService {
       gridSize: this.state.gridSize!,
       score: this.calculateScore(),
     };
-    console.log(this.state.results);
-    console.log(result);
     this.state.results.push(result);
     this.saveState();
   }
@@ -188,5 +191,4 @@ export class CardService {
       clickedCard.exposed
     );
   }
-  
 }
