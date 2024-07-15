@@ -9,7 +9,7 @@ import { StateService } from "../services/stateService";
 import { repeat } from "lit/directives/repeat.js";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import "./loginComponent.js";
-import "./resultComponent.js";
+
 
 const auth = getAuth();
 
@@ -17,7 +17,6 @@ const auth = getAuth();
 export class MemoryGame extends LitElement {
   @property({ type: Array }) cards: Card[] = [];
   @property({ type: Boolean }) loggedIn: boolean = false;
-  @property({ type: Boolean }) showResults: boolean = false;
   @property({ type: Boolean }) loginState: boolean = false;
 
   cardService: CardService;
@@ -150,14 +149,5 @@ export class MemoryGame extends LitElement {
       this.stateService.resetState(true);
       this.requestUpdate();
     });
-  }
-
-  showStats() {
-    this.showResults = true;
-  }
-
-  closePopup() {
-    console.log("closed");
-    this.showResults = false;
   }
 }
