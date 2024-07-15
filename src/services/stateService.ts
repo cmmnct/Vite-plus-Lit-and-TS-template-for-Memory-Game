@@ -106,33 +106,14 @@ export class StateService {
     }
   }
 
-  isLoggedIn(): boolean {
-    return this.user !== null;
-  }
-
   getUserEmail(): string | null {
     return this.user?.email || null;
   }
 
   async logout() {
-    await auth.signOut();
+    auth.signOut().then(() => {
+      this.resetState(true);
+    });
   }
 
-  generateRandomResults() {
-   
-    const gridSizes = [16, 25, 36];
-
-    for (let i = 0; i < 30; i++) {
-      const gridSize = gridSizes[Math.floor(Math.random() * gridSizes.length)];
-      const attempts = Math.floor(Math.random() * 30) + 10;
-      const score = Math.floor(Math.random() * 100) + 1;
-      const date = new Date(
-        Date.now() - Math.floor(Math.random() * 365) * 24 * 60 * 60 * 1000
-      ).toISOString();
-
-      this.state.results.push({ date, attempts, gridSize, score });
-    }
-
-  }
 }
-
