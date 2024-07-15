@@ -1,7 +1,6 @@
 import { LitElement, html, css } from "lit";
 import { property, customElement } from "lit/decorators.js";
 import "./memoryCard.js";
-import { Card } from "../models/models";
 import { container } from "../../inversify.config";
 import { TYPES } from "../types";
 import { CardService } from "../services/cardService";
@@ -15,7 +14,6 @@ const auth = getAuth();
 
 @customElement("memory-game")
 export class MemoryGame extends LitElement {
-  @property({ type: Array }) cards: Card[] = [];
   @property({ type: Boolean }) loggedIn: boolean = false;
   @property({ type: Boolean }) loginState: boolean = false;
 
@@ -73,7 +71,6 @@ export class MemoryGame extends LitElement {
       if (user) {
         this.loggedIn = true;
         await this.stateService.loadState();
-        this.cards = this.stateService.getState().cards;
         this.loginState = false;
       } else {
         this.loggedIn = false;
@@ -134,7 +131,6 @@ export class MemoryGame extends LitElement {
 
   async handleGridSizeChange(event: Event) {
     await this.cardService.initializeCards(event);
-    this.cards = this.stateService.getState().cards;
     this.requestUpdate();
   }
 
@@ -145,7 +141,6 @@ export class MemoryGame extends LitElement {
   logout() {
     auth.signOut().then(() => {
       this.loggedIn = false;
-      this.cards = [];
       this.stateService.resetState(true);
       this.requestUpdate();
     });
