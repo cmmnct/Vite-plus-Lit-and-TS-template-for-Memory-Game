@@ -106,16 +106,14 @@ export class StateService {
     }
   }
 
-  isLoggedIn(): boolean {
-    return this.user !== null;
-  }
-
   getUserEmail(): string | null {
     return this.user?.email || null;
   }
 
   async logout() {
-    await auth.signOut();
+   auth.signOut().then(() => {
+     this.resetState(true);
+   });
   }
 
   generateRandomResults() {

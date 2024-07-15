@@ -15,7 +15,6 @@ const auth = getAuth();
 
 @customElement("memory-game")
 export class MemoryGame extends LitElement {
-  @property({ type: Array }) cards: Card[] = [];
   @property({ type: Boolean }) loggedIn: boolean = false;
   @property({ type: Boolean }) showResults: boolean = false;
   @property({ type: Boolean }) loginState: boolean = false;
@@ -74,7 +73,6 @@ export class MemoryGame extends LitElement {
       if (user) {
         this.loggedIn = true;
         await this.stateService.loadState();
-        this.cards = this.stateService.getState().cards;
         this.loginState = false;
       } else {
         this.loggedIn = false;
@@ -88,7 +86,8 @@ export class MemoryGame extends LitElement {
       ${this.loggedIn
         ? html` <div class="login-indicator">
             Ingelogd als: ${auth.currentUser?.email}
-            <button @click="${this.logout}">Logout</button>
+            <button @click="${this.logout}">Logout</button
+            ><button @click="${this.showStats}">Show Stats</button>
           </div>`
         : html` <div class="login-indicator">
             <button @click="${this.login}">Login</button>
@@ -126,6 +125,14 @@ export class MemoryGame extends LitElement {
             ></login-component>
           </div>`
         : ""}
+      ${this.showResults
+        ? html`
+            <result-component
+              .results="${this.stateService.getState().results}"
+              @close-popup="${this.closePopup}"
+            ></result-component>
+          `
+        : ""}
     `;
   }
 
@@ -135,7 +142,6 @@ export class MemoryGame extends LitElement {
 
   async handleGridSizeChange(event: Event) {
     await this.cardService.initializeCards(event);
-    this.cards = this.stateService.getState().cards;
     this.requestUpdate();
   }
 
@@ -143,14 +149,11 @@ export class MemoryGame extends LitElement {
     this.cardService.handleCardClick(index, () => this.requestUpdate());
   }
 
-  logout() {
-    auth.signOut().then(() => {
-      this.loggedIn = false;
-      this.cards = [];
+  async logout() {
+    await this.stateService.logout()
       this.stateService.resetState(true);
       this.requestUpdate();
-    });
-  }
+    };
 
   showStats() {
     this.showResults = true;

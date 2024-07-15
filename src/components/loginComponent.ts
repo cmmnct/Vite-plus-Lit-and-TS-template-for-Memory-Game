@@ -2,11 +2,6 @@ import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { container } from "../../inversify.config";
 import { TYPES } from "../types";
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-} from "firebase/auth";
-import { auth } from "../../firebaseConfig";
 import { StateService } from "../services/stateService";
 
 @customElement("login-component")
