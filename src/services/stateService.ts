@@ -63,6 +63,7 @@ export class StateService {
 
   updateState(updatedState: Partial<State>) {
     this.state = { ...this.state, ...updatedState };
+    this.saveState()
   }
 
   resetState(init: boolean = false) {

@@ -27,7 +27,6 @@ export class CardService {
       const cards = this.createCardsFromSets(cardData, gridSize);
       const shuffledCards = GameLogic.shuffle(cards);
       this.stateService.updateState({ cards: shuffledCards });
-      await this.stateService.saveState();
     } catch (error) {
       console.error("Failed to fetch data:", error);
     }
