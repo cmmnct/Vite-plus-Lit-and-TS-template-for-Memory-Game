@@ -153,7 +153,7 @@ export class ResultComponent extends LitElement {
 
   getFilteredResults() {
     const now = new Date();
-    const startDate = new Date();
+    let startDate = new Date();
 
     switch (this.filter) {
       case "day":
