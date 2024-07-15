@@ -1,7 +1,6 @@
 import { LitElement, html, css } from "lit";
 import { property, customElement } from "lit/decorators.js";
 import "./memoryCard.js";
-import { Card } from "../models/models";
 import { container } from "../../inversify.config";
 import { TYPES } from "../types";
 import { CardService } from "../services/cardService";
