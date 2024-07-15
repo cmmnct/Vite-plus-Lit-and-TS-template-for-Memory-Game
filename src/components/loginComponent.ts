@@ -1,16 +1,21 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
+import { container } from "../../inversify.config";
+import { TYPES } from "../types";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from "firebase/auth";
 import { auth } from "../../firebaseConfig";
+import { StateService } from "../services/stateService";
 
 @customElement("login-component")
 export class LoginComponent extends LitElement {
   @property({ type: String }) email: string = "";
   @property({ type: String }) password: string = "";
   @property({ type: String }) message: string = "";
+
+  stateService: StateService;
 
   static styles = css`
     .popup {
@@ -59,6 +64,10 @@ export class LoginComponent extends LitElement {
       color: red;
     }
   `;
+  constructor() {
+    super();
+    this.stateService = container.get<StateService>(TYPES.StateService);
+  }
 
   render() {
     return html`
@@ -94,34 +103,17 @@ export class LoginComponent extends LitElement {
     this.password = (e.target as HTMLInputElement).value;
   }
 
-  async login() {
-    try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        this.email,
-        this.password
-      );
-      this.message = `Logged in as ${userCredential.user.email}`;
-    } catch (error: any) {
-      this.message = `Error: ${error.message}`;
-    }
-  }
   cancel() {
     this.dispatchEvent(
       new CustomEvent("cancel", { bubbles: true, composed: true })
     );
   }
 
+  async login() {
+    this.message = await this.stateService.login(this.email, this.password);
+  }
+
   async register() {
-    try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        this.email,
-        this.password
-      );
-      this.message = `Registered as ${userCredential.user.email}`;
-    } catch (error: any) {
-      this.message = `Error: ${error.message}`;
-    }
+   this.message = await this.stateService.register(this.email, this.password);
   }
 }

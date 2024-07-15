@@ -1,7 +1,11 @@
 import { auth, firestore } from "../../firebaseConfig";
-import { getAuth, onAuthStateChanged, User } from "firebase/auth";
+import { onAuthStateChanged, User } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { State } from "../models/models";
+import { State, Result } from "../models/models";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 import {
   loadFromLocalStorage,
   saveToLocalStorage,
@@ -63,7 +67,7 @@ export class StateService {
 
   updateState(updatedState: Partial<State>) {
     this.state = { ...this.state, ...updatedState };
-    this.saveState()
+    this.saveState();
   }
 
   resetState(init: boolean = false) {
@@ -73,6 +77,32 @@ export class StateService {
     if (init) {
       this.state.attempts = 0;
       this.state.cards = [];
+    }
+  }
+
+  async login(email: string, password: string) {
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      return `Logged in as ${userCredential.user.email}`;
+    } catch (error: any) {
+      return `Error: ${error.message}`;
+    }
+  }
+
+  async register(email: string, password: string) {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      return `Registered as ${userCredential.user.email}`;
+    } catch (error: any) {
+      return `Error: ${error.message}`;
     }
   }
 
@@ -87,4 +117,22 @@ export class StateService {
   async logout() {
     await auth.signOut();
   }
+
+  generateRandomResults() {
+   
+    const gridSizes = [16, 25, 36];
+
+    for (let i = 0; i < 30; i++) {
+      const gridSize = gridSizes[Math.floor(Math.random() * gridSizes.length)];
+      const attempts = Math.floor(Math.random() * 30) + 10;
+      const score = Math.floor(Math.random() * 100) + 1;
+      const date = new Date(
+        Date.now() - Math.floor(Math.random() * 365) * 24 * 60 * 60 * 1000
+      ).toISOString();
+
+      this.state.results.push({ date, attempts, gridSize, score });
+    }
+
+  }
 }
+

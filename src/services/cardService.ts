@@ -7,7 +7,7 @@ import { StateService } from "./stateService";
 @injectable()
 export class CardService {
   constructor(@inject(TYPES.StateService) private stateService: StateService) {
-    this.loadState(); // Laad de state bij het initialiseren van de service
+    this.stateService.loadState(); // Laad de state bij het initialiseren van de service
   }
 
   async initializeCards(event: Event): Promise<void> {
@@ -78,7 +78,7 @@ export class CardService {
       if (this.cardsLeft(state.cards)) {
         this.stateService.resetState();
         updateCallback();
-        this.saveState();
+        this.stateService.saveState();
       } else {
         alert("Gefeliciteerd! Je hebt alle kaarten gevonden.");
         this.addResult();
@@ -89,7 +89,7 @@ export class CardService {
         state.secondCard!.exposed = false;
         this.stateService.resetState();
         updateCallback();
-        this.saveState();
+        this.stateService.saveState();
       }, 1000);
     }
   }
@@ -103,20 +103,13 @@ export class CardService {
       score: this.calculateScore(state),
     };
     this.stateService.updateState({ results: [...state.results, result] });
-    this.saveState();
   }
 
   private calculateScore(state: State): number {
     return Math.max(0, state.gridSize! * 2 - state.attempts);
   }
 
-  private async saveState() {
-    await this.stateService.saveState();
-  }
 
-  async loadState() {
-    await this.stateService.loadState();
-  }
 
   private cardsLeft(cards: Card[]): boolean {
     return cards.some((card) => !card.exposed);
