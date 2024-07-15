@@ -106,10 +106,10 @@ export class StateService {
     }
   }
 
-  async logout() {
+  async logout(updateCallback: () => void) {
     auth.signOut().then(() => {
       this.resetState(true);
+      updateCallback()
     });
   }
-
 }
