@@ -78,13 +78,15 @@ export class LoginComponent extends LitElement {
             type="email"
             placeholder="Email"
             .value=${this.email}
-            @input=${this.updateEmail}
+            @input=${(e: Event) =>
+              (this.email = (e.target as HTMLInputElement).value)}
           />
           <input
             type="password"
             placeholder="Password"
             .value=${this.password}
-            @input=${this.updatePassword}
+            @input=${(e: Event) =>
+              (this.password = (e.target as HTMLInputElement).value)}
           />
           <button @click="${this.login}">Login</button>
           <button @click="${this.register}">Register</button>
@@ -93,14 +95,6 @@ export class LoginComponent extends LitElement {
         </div>
       </div>
     `;
-  }
-
-  updateEmail(e: Event) {
-    this.email = (e.target as HTMLInputElement).value;
-  }
-
-  updatePassword(e: Event) {
-    this.password = (e.target as HTMLInputElement).value;
   }
 
   cancel() {
@@ -114,6 +108,6 @@ export class LoginComponent extends LitElement {
   }
 
   async register() {
-   this.message = await this.stateService.register(this.email, this.password);
+    this.message = await this.stateService.register(this.email, this.password);
   }
 }

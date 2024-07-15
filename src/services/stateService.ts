@@ -106,10 +106,6 @@ export class StateService {
     }
   }
 
-  getUserEmail(): string | null {
-    return this.user?.email || null;
-  }
-
   async logout() {
     auth.signOut().then(() => {
       this.resetState(true);
