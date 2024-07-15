@@ -136,11 +136,8 @@ export class MemoryGame extends LitElement {
     this.cardService.handleCardClick(index, () => this.requestUpdate());
   }
 
-  logout() {
-    auth.signOut().then(() => {
-      this.loggedIn = false;
-      this.stateService.resetState(true);
-      this.requestUpdate();
-    });
+  async logout() {
+    await this.stateService.logout();
+    this.requestUpdate();
   }
 }
