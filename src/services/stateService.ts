@@ -106,14 +106,14 @@ export class StateService {
     }
   }
 
-  async logout() {
-   auth.signOut().then(() => {
-     this.resetState(true);
-   });
+  async logout(updateCallback: () => void) {
+    auth.signOut().then(() => {
+      this.resetState(true);
+      updateCallback();
+    });
   }
-
+  
   generateRandomResults() {
-   
     const gridSizes = [16, 25, 36];
 
     for (let i = 0; i < 30; i++) {
@@ -126,7 +126,6 @@ export class StateService {
 
       this.state.results.push({ date, attempts, gridSize, score });
     }
-
   }
 }
 

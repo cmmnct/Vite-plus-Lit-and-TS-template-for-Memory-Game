@@ -148,8 +148,7 @@ export class MemoryGame extends LitElement {
   }
 
   async logout() {
-    await this.stateService.logout()
-      this.requestUpdate();
+    await this.stateService.logout(() => this.requestUpdate());
     };
 
   showStats() {
