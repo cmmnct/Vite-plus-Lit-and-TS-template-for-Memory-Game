@@ -6,11 +6,9 @@ import { TYPES } from "../types";
 import { CardService } from "../services/cardService";
 import { StateService } from "../services/stateService";
 import { repeat } from "lit/directives/repeat.js";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../../firebaseConfig.js"
 import "./loginComponent.js";
-
-
-const auth = getAuth();
 
 @customElement("memory-game")
 export class MemoryGame extends LitElement {
