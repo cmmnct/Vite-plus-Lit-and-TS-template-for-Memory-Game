@@ -160,7 +160,6 @@ export class MemoryGame extends LitElement {
   }
 
   closePopup() {
-    console.log("closed");
     this.showResults = false;
   }
 }
