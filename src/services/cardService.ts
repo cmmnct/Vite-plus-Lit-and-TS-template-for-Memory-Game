@@ -78,7 +78,6 @@ export class CardService {
       if (this.cardsLeft(state.cards)) {
         this.stateService.resetState();
         updateCallback();
-        this.stateService.saveState();
       } else {
         alert("Gefeliciteerd! Je hebt alle kaarten gevonden.");
         this.addResult();
@@ -89,7 +88,6 @@ export class CardService {
         state.secondCard!.exposed = false;
         this.stateService.resetState();
         updateCallback();
-        this.stateService.saveState();
       }, 1000);
     }
   }
