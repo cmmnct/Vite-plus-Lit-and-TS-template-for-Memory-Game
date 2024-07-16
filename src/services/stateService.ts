@@ -74,6 +74,7 @@ export class StateService {
     this.state.firstCard = null;
     this.state.secondCard = null;
     this.state.lockBoard = false;
+    this.saveState();
     if (init) {
       this.state.attempts = 0;
       this.state.cards = [];

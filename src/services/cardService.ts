@@ -78,7 +78,6 @@ export class CardService {
       if (this.cardsLeft(state.cards)) {
         this.stateService.resetState();
         updateCallback();
-        this.stateService.saveState();
       } else {
         alert("Gefeliciteerd! Je hebt alle kaarten gevonden.");
         this.addResult();
@@ -89,7 +88,6 @@ export class CardService {
         state.secondCard!.exposed = false;
         this.stateService.resetState();
         updateCallback();
-        this.stateService.saveState();
       }, 1000);
     }
   }
@@ -100,16 +98,10 @@ export class CardService {
       date: new Date().toISOString(),
       attempts: state.attempts,
       gridSize: state.gridSize!,
-      score: this.calculateScore(state),
+      score: Math.max(0, state.gridSize! * 2 - state.attempts),
     };
     this.stateService.updateState({ results: [...state.results, result] });
   }
-
-  private calculateScore(state: State): number {
-    return Math.max(0, state.gridSize! * 2 - state.attempts);
-  }
-
-
 
   private cardsLeft(cards: Card[]): boolean {
     return cards.some((card) => !card.exposed);
