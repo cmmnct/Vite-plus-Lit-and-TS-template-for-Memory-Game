@@ -79,8 +79,10 @@ export class CardService {
         this.stateService.resetState();
         updateCallback();
       } else {
-        alert("Gefeliciteerd! Je hebt alle kaarten gevonden.");
-        this.addResult();
+        setTimeout(() => {
+          alert("Gefeliciteerd! Je hebt alle kaarten gevonden.");
+          this.addResult();
+        }, 1000);
       }
     } else {
       setTimeout(() => {
