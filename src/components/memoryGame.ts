@@ -84,11 +84,11 @@ export class MemoryGame extends LitElement {
       ${this.loggedIn
         ? html` <div class="login-indicator">
             Ingelogd als: ${auth.currentUser?.email}
-            <button @click="${this.logout}">Logout</button
-            ><button @click="${this.showStats}">Show Stats</button>
+            <button @click="${this.logout}">Logout</button>
+            <button @click="${() => this.showResults = true}">Show Stats</button>
           </div>`
         : html` <div class="login-indicator">
-            <button @click="${this.login}">Login</button>
+            <button @click="${()=> this.loginState = true}">Login</button>
           </div>`}
       <div class="select-grid">
         <select @change="${this.handleGridSizeChange}">
@@ -134,10 +134,6 @@ export class MemoryGame extends LitElement {
     `;
   }
 
-  login() {
-    this.loginState = true;
-  }
-
   async handleGridSizeChange(event: Event) {
     await this.cardService.initializeCards(event);
     this.requestUpdate();
@@ -150,10 +146,6 @@ export class MemoryGame extends LitElement {
   async logout() {
     await this.stateService.logout(() => this.requestUpdate());
     };
-
-  showStats() {
-    this.showResults = true;
-  }
 
   closePopup() {
     this.showResults = false;
