@@ -71,7 +71,7 @@ export class ResultComponent extends LitElement {
     ) as HTMLCanvasElement;
     if (!ctx) return;
 
-    const labels = months({ count: 7 });
+
     const data = {
       labels: this.results.map((result) =>
         new Date(result.date).toLocaleDateString()
@@ -94,35 +94,4 @@ export class ResultComponent extends LitElement {
     const myChart = new Chart(ctx, config as ChartConfiguration)
     
   }
-
-}
-
-export const MONTHS = [
-  "Januari",
-  "Februari",
-  "Maart",
-  "April",
-  "Mei",
-  "Juni",
-  "Juli",
-  "Augustus",
-  "September",
-  "Oktober",
-  "November",
-  "December",
-];
-
-export function months(config: any) {
-  var cfg = config || {};
-  var count = cfg.count || 12;
-  var section = cfg.section;
-  var values = [];
-  var i, value;
-
-  for (i = 0; i < count; ++i) {
-    value = MONTHS[Math.ceil(i) % 12];
-    values.push(value.substring(0, section));
-  }
-
-  return values;
 }
