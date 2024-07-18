@@ -41,6 +41,9 @@ export class ResultComponent extends LitElement {
   `;
 
   updated() {
+   console.log(
+     this.results.map((result) => new Date(result.date).toLocaleDateString())
+   );
     this.renderChart();
   }
 
@@ -70,11 +73,13 @@ export class ResultComponent extends LitElement {
 
     const labels = months({ count: 7 });
     const data = {
-      labels: labels,
+      labels: this.results.map((result) =>
+        new Date(result.date).toLocaleDateString()
+      ),
       datasets: [
         {
           label: "My First Dataset",
-          data: [65, 59, 80, 81, 56, 55, 40],
+          data: this.results.map((result) => result.attempts),
           fill: false,
           borderColor: "rgb(75, 192, 192)",
           tension: 0.1,
