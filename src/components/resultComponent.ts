@@ -51,6 +51,7 @@ export class ResultComponent extends LitElement {
 
   updated() {
     this.renderChart();
+    console.log(this.results)
   }
 
   render() {
