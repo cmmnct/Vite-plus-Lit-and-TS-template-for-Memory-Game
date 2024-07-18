@@ -1,14 +1,12 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import Chart from "chart.js/auto";
+import Chart, { ChartConfiguration } from "chart.js/auto";
 import "chartjs-adapter-date-fns";
 import { Result } from "../models/models";
 
 @customElement("result-component")
 export class ResultComponent extends LitElement {
   @property({ type: Array }) results: Result[] = [];
-  @property({ type: String }) filter: "day" | "week" | "month" | "year" =
-    "month";
 
   static styles = css`
     .popup {
@@ -34,20 +32,13 @@ export class ResultComponent extends LitElement {
     }
     .chart-container {
       width: 100%;
-      height: 60vh; /* verhoog de hoogte van de grafiek */
+      min-height: 50vh
     }
     button {
       padding: 10px;
       cursor: pointer;
     }
-    .filter-buttons {
-      display: flex;
-      justify-content: space-around;
-      margin-bottom: 20px;
-    }
   `;
-
-  private chart: Chart | null = null;
 
   updated() {
     this.renderChart();
@@ -57,23 +48,12 @@ export class ResultComponent extends LitElement {
     return html`
       <div class="overlay" @click="${this.closePopup}"></div>
       <div class="popup">
-        <div class="filter-buttons">
-          <button @click="${() => this.setFilter("day")}">Dag</button>
-          <button @click="${() => this.setFilter("week")}">Week</button>
-          <button @click="${() => this.setFilter("month")}">Maand</button>
-          <button @click="${() => this.setFilter("year")}">Jaar</button>
-        </div>
         <div class="chart-container">
           <canvas id="resultsChart"></canvas>
         </div>
         <button @click="${this.closePopup}">Sluiten</button>
       </div>
     `;
-  }
-
-  setFilter(filter: "day" | "week" | "month" | "year") {
-    this.filter = filter;
-    this.requestUpdate();
   }
 
   closePopup() {
@@ -88,126 +68,56 @@ export class ResultComponent extends LitElement {
     ) as HTMLCanvasElement;
     if (!ctx) return;
 
-    const filteredResults = this.getFilteredResults();
-
-    const datasets = [
-      {
-        label: "4x4",
-        data: this.calculateAverages(
-          filteredResults.filter((result) => result.gridSize === 16)
-        ),
-        borderColor: "rgba(75, 192, 192, 1)",
-        backgroundColor: "rgba(75, 192, 192, 0.2)",
-      },
-      {
-        label: "5x5",
-        data: this.calculateAverages(
-          filteredResults.filter((result) => result.gridSize === 25)
-        ),
-        borderColor: "rgba(192, 75, 192, 1)",
-        backgroundColor: "rgba(192, 75, 192, 0.2)",
-      },
-      {
-        label: "6x6",
-        data: this.calculateAverages(
-          filteredResults.filter((result) => result.gridSize === 36)
-        ),
-        borderColor: "rgba(192, 192, 75, 1)",
-        backgroundColor: "rgba(192, 192, 75, 0.2)",
-      },
-    ];
-
-    if (this.chart) {
-      this.chart.destroy();
-    }
-
-    this.chart = new Chart(ctx, {
-      type: "line",
-      data: {
-        datasets: datasets as any,
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          x: {
-            type: "time",
-            time: {
-              unit: this.getTimeUnit(),
-            },
-            title: {
-              display: true,
-              text: "Datum",
-            },
-          },
-          y: {
-            title: {
-              display: true,
-              text: "Gemiddelde Pogingen",
-            },
-          },
+    const labels = months({ count: 7 });
+    const data = {
+      labels: labels,
+      datasets: [
+        {
+          label: "My First Dataset",
+          data: [65, 59, 80, 81, 56, 55, 40],
+          fill: false,
+          borderColor: "rgb(75, 192, 192)",
+          tension: 0.1,
         },
-      },
-    });
+      ],
+    };
+    const config = {
+      type: "line",
+      data: data
+    };
+
+    const myChart = new Chart(ctx, config as ChartConfiguration)
+    
   }
 
-  getFilteredResults() {
-    const now = new Date();
-    let startDate = new Date();
+}
 
-    switch (this.filter) {
-      case "day":
-        startDate.setDate(now.getDate() - 1);
-        break;
-      case "week":
-        startDate.setDate(now.getDate() - 7);
-        break;
-      case "month":
-        startDate.setMonth(now.getMonth() - 1);
-        break;
-      case "year":
-        startDate.setFullYear(now.getFullYear() - 1);
-        break;
-    }
+export const MONTHS = [
+  "Januari",
+  "Februari",
+  "Maart",
+  "April",
+  "Mei",
+  "Juni",
+  "Juli",
+  "Augustus",
+  "September",
+  "Oktober",
+  "November",
+  "December",
+];
 
-    return this.results.filter((result) => {
-      const resultDate = new Date(result.date);
-      return resultDate >= startDate && resultDate <= now;
-    });
+export function months(config: any) {
+  var cfg = config || {};
+  var count = cfg.count || 12;
+  var section = cfg.section;
+  var values = [];
+  var i, value;
+
+  for (i = 0; i < count; ++i) {
+    value = MONTHS[Math.ceil(i) % 12];
+    values.push(value.substring(0, section));
   }
 
-  getTimeUnit() {
-    switch (this.filter) {
-      case "day":
-        return "hour";
-      case "week":
-        return "day";
-      case "month":
-        return "week";
-      case "year":
-        return "month";
-    }
-  }
-
-  calculateAverages(results: Result[]) {
-    const averages: { [date: string]: { total: number; count: number } } = {};
-
-    results.forEach((result) => {
-      const date = new Date(result.date).toISOString().split("T")[0];
-      if (!averages[date]) {
-        averages[date] = { total: 0, count: 0 };
-      }
-      averages[date].total += result.attempts;
-      averages[date].count += 1;
-    });
-
-    const sortedAverages = Object.keys(averages)
-      .map((date) => ({
-        x: new Date(date),
-        y: averages[date].total / averages[date].count,
-      }))
-      .sort((a, b) => a.x.getTime() - b.x.getTime());
-
-    return sortedAverages;
-  }
+  return values;
 }
