@@ -2,10 +2,8 @@ import { State, Result } from "../models/models";
 import { firestore } from "../../firebaseConfig";
 import { doc, setDoc } from "firebase/firestore";
 import { User } from "firebase/auth";
-import { format } from "date-fns";
-import { saveToLocalStorage } from "./localStorageHelper";
 
-export async function generateResults(user: User, state: State) {
+export async function generateResults(user: User | null, state: State) {
   const results: Result[] = [];
   const gridSizes = [16, 25, 36];
   const startDate = new Date(2024, 0, 1); // Start vanaf 1 januari 2024
@@ -18,12 +16,12 @@ export async function generateResults(user: User, state: State) {
   ) {
     gridSizes.forEach((gridSize) => {
       for (let i = 0; i < 2; i++) {
-        let rand = Math.floor(Math.random() * gridSize + (gridSize - 4));
+        let randomAttempts = Math.floor(Math.random() * gridSize + (gridSize - 4));
         results.push({
-          date: format(new Date(date), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"),
-          attempts: rand, // Willekeurige waarde tussen 10 en 19
+          date: new Date(date).toISOString(),
+          attempts: randomAttempts,
           gridSize,
-          score: 10 * ((gridSize - 4) / rand), // Willekeurige score
+          score: 10 * ((gridSize - 4) / randomAttempts), // Willekeurige score
         });
       }
     });
@@ -40,6 +38,6 @@ export async function generateResults(user: User, state: State) {
     const stateRef = doc(firestore, `users/${userId}/gameState/state`);
     await setDoc(stateRef, state);
   } else {
-    saveToLocalStorage("memoryGameState", state);
+    console.log("error: could not save fake data")
   }
 }

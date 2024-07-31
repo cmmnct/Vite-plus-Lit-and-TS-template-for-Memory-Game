@@ -11,6 +11,7 @@ import {
   saveToLocalStorage,
 } from "../utils/localStorageHelper";
 import { injectable } from "inversify";
+import { generateResults } from "../utils/generateRandomResults";
 
 @injectable()
 export class StateService {
@@ -32,6 +33,7 @@ export class StateService {
   private initAuthListener() {
     onAuthStateChanged(auth, (user) => {
       this.user = user;
+       generateResults(user, this.state);
     });
   }
 
@@ -114,19 +116,5 @@ export class StateService {
     });
   }
   
-  generateRandomResults() {
-    const gridSizes = [16, 25, 36];
-
-    for (let i = 0; i < 30; i++) {
-      const gridSize = gridSizes[Math.floor(Math.random() * gridSizes.length)];
-      const attempts = Math.floor(Math.random() * 30) + 10;
-      const score = Math.floor(Math.random() * 100) + 1;
-      const date = new Date(
-        Date.now() - Math.floor(Math.random() * 365) * 24 * 60 * 60 * 1000
-      ).toISOString();
-
-      this.state.results.push({ date, attempts, gridSize, score });
-    }
-  }
 }
 
