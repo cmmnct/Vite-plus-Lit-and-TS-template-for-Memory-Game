@@ -111,7 +111,7 @@ export class CardService {
   }
 
   isInvalidClick(card: Card): boolean {
-    return (
+    return !!(
       this.state.lockBoard || card === this.state.firstCard || card.exposed
     );
   }
